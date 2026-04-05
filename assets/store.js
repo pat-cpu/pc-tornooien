@@ -2,7 +2,15 @@ console.log("STORE VERSION STATIC 2026-04-05-B");
 
 const DATA_URL = "./data/tornooien.json";
 const STORAGE_KEY_CACHE = "pc_tornooien_cache_v9";
+const KEY = 'toernooien';
 
+export function getToernooien() {
+  return JSON.parse(localStorage.getItem(KEY) || '[]');
+}
+
+export function setToernooien(items) {
+  localStorage.setItem(KEY, JSON.stringify(items));
+}
 function nowIso() {
   return new Date().toISOString();
 }
@@ -192,3 +200,17 @@ export async function deleteTournament(id) {
 export async function archiveSeason() {
   throw new Error("Archiveren is niet voorzien in deze versie.");
 }
+
+import { pullFromCloud } from './cloud.js';
+import { renderToernooien } from './ui.js'; // pas aan
+
+document.getElementById('btnCloudOphalen').addEventListener('click', async () => {
+  try {
+    const items = await pullFromCloud();
+    renderToernooien(items);
+    alert(`${items.length} toernooien geladen`);
+  } catch (err) {
+    console.error(err);
+    alert(`Fout: ${err.message}`);
+  }
+});
