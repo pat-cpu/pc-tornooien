@@ -837,3 +837,4 @@ if (fStatus?.closest(".field")) {
   await refreshFromSource();
   bindListClicksOnce();
 })();
+import "./supabase-test.js";
