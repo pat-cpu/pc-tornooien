@@ -200,16 +200,3 @@ export async function archiveSeason() {
   throw new Error("Archiveren is niet voorzien in deze versie.");
 }
 
-import { pullFromCloud } from './cloud.js';
-import { renderToernooien } from './ui.js'; // pas aan
-
-document.getElementById('btnCloudOphalen').addEventListener('click', async () => {
-  try {
-    const items = await pullFromCloud();
-    renderToernooien(items);
-    alert(`${items.length} toernooien geladen`);
-  } catch (err) {
-    console.error(err);
-    alert(`Fout: ${err.message}`);
-  }
-});
