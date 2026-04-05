@@ -1,12 +1,13 @@
-import { pushAllToCloud } from './cloud.js';
+import { getToernooien, setToernooien } from './store.js';
 
-async function testPush() {
-  try {
-    const result = await pushAllToCloud();
-    console.log('Push naar Supabase OK:', result);
-  } catch (error) {
-    console.error('Push naar Supabase mislukt:', error);
-  }
+function ensureUpdatedAt() {
+  const items = getToernooien();
+  const fixed = items.map(item => ({
+    ...item,
+    updatedAt: item.updatedAt ?? new Date().toISOString()
+  }));
+  setToernooien(fixed);
+  console.log('updatedAt toegevoegd:', fixed);
 }
 
-testPush();
+ensureUpdatedAt();
