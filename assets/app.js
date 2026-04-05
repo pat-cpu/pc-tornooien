@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 console.log("APP VERSION TEST 2026-04-02-A");
 import {
   escapeHtml, norm, toDisplayDate, todayMidnight,
@@ -12,15 +11,6 @@ import {
   readCache,
   writeCache
 } from "./store.js";
-=======
-import {
-  escapeHtml, norm, toDisplayDate, todayMidnight,
-  STATUS, statusFromLegacyText, statusLabel
-} from "./model.js";
-
-import { loadAll, saveAll, clearAll, archiveSeason } from "./store.js";
-
->>>>>>> f1f106c (Initial commit)
 
 // ============================
 // DOM refs
