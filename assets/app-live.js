@@ -1,5 +1,7 @@
 console.log("APP LIVE 20260405a");
+import { getToernooien } from './store.js';
 
+console.log('UI localStorage check:', getToernooien());
 import {
   escapeHtml as esc,
   norm,
