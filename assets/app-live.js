@@ -1,5 +1,17 @@
-console.log("APP LIVE 20260405a");
-import { getToernooien } from "./store.js?v=20260405a";
+console.log("APP LIVE 20260405b");
+
+import {
+  getToernooien,
+  loadAll,
+  clearAll,
+  readCache,
+  writeCache,
+  addTournament,
+  updateTournament,
+  deleteTournament,
+  getTournamentById
+} from "./store.js?v=20260405c";
+
 import { syncNow } from "./cloud.js?v=20260405a";
 
 console.log("UI localStorage check:", getToernooien());
@@ -13,18 +25,6 @@ import {
   STATUS,
   statusLabel
 } from "./model.js?v=20260405a";
-
-import {
-  loadAll,
-  clearAll,
-  readCache,
-  writeCache,
-  addTournament,
-  updateTournament,
-  deleteTournament,
-  getTournamentById
-} from "./store.js?v=20260405a";
-
 // ============================
 // DOM refs
 // ============================
@@ -248,7 +248,7 @@ function normalizeItem(x, i = 0) {
     played_at: x?.played_at || "",
     note: norm(x?.note || x?.notities || ""),
     created_at: x?.created_at || "",
-    updated_at: x?.updated_at || "",
+    updated_at: x?.updated_at || x?.updatedAt || "",
     deleted: Boolean(x?.deleted)
   };
 }
