@@ -200,3 +200,16 @@ export async function archiveSeason() {
   throw new Error("Archiveren is niet voorzien in deze versie.");
 }
 
+import { getToernooien, setToernooien } from './store.js';
+
+function ensureUpdatedAt() {
+  const items = getToernooien();
+  const fixed = items.map(item => ({
+    ...item,
+    updatedAt: item.updatedAt ?? new Date().toISOString()
+  }));
+  setToernooien(fixed);
+  console.log('updatedAt toegevoegd aan lokale records:', fixed);
+}
+
+ensureUpdatedAt();
