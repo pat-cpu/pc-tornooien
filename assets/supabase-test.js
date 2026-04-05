@@ -1,12 +1,12 @@
-import { pushAllToCloud } from './cloud.js';
+import { syncNow } from './cloud.js';
 
-async function testPush() {
+async function testSync() {
   try {
-    const result = await pushAllToCloud();
-    console.log('Push naar Supabase OK:', result);
+    const result = await syncNow();
+    console.log('Sync OK:', result);
   } catch (error) {
-    console.error('Push naar Supabase mislukt:', error);
+    console.error('Sync mislukt:', error);
   }
 }
 
-testPush();
+testSync();

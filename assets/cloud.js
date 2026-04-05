@@ -54,7 +54,36 @@ export async function pullFromCloud() {
   const local = getToernooien();
   const cloud = await fetchToernooienFromCloud();
 
-  const map = new Map(local.map(item => [item.id, item]));
+  const merged = mergeToernooien(local, cloud);
+  setToernooien(merged);
+
+  return merged;
+}
+
+export async function pushAllToCloud() {
+  const items = getToernooien();
+
+  const rows = items.map(item => ({
+    ...tournamentToRow(item),
+    updated_at: item.updatedAt ?? new Date().toISOString()
+  }));
+
+  const { data, error } = await supabase
+    .from('tournaments')
+    .upsert(rows, { onConflict: 'id' })
+    .select();
+
+  if (error) throw error;
+
+  return data;
+}
+
+function mergeToernooien(local, cloud) {
+  const map = new Map();
+
+  for (const item of local) {
+    map.set(item.id, item);
+  }
 
   for (const cloudItem of cloud) {
     const localItem = map.get(cloudItem.id);
@@ -72,15 +101,18 @@ export async function pullFromCloud() {
     }
   }
 
-  const merged = [...map.values()];
-  setToernooien(merged);
-  return merged;
+  return [...map.values()];
 }
 
-export async function pushAllToCloud() {
-  const items = getToernooien();
+export async function syncNow() {
+  const local = getToernooien();
+  const cloud = await fetchToernooienFromCloud();
 
-  const rows = items.map(item => ({
+  const merged = mergeToernooien(local, cloud);
+
+  setToernooien(merged);
+
+  const rows = merged.map(item => ({
     ...tournamentToRow(item),
     updated_at: item.updatedAt ?? new Date().toISOString()
   }));
