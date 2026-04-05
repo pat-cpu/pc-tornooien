@@ -496,7 +496,11 @@ function card(item) {
 
 function render() {
   ensureArrayData();
-  renderChips();
+  console.log("RENDER DATA:", DATA);
+
+  listEl.innerHTML = DATA.map(card).join("");
+  return;
+
 
   const q = (qEl?.value || "").trim();
   const filtered = DATA.filter(matchesChip).filter(x => matchesQuery(x, q));
