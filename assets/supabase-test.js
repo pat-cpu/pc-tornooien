@@ -1,15 +1,13 @@
 import { supabase } from "./supabase.js";
 
-async function test() {
-  const { data, error } = await supabase
-    .from("tournaments")
-    .select("*");
+async function testSupabase() {
+  const { data, error, count } = await supabase
+    .from('tournaments')
+    .select('*', { count: 'exact' });
 
-  if (error) {
-    console.error("Supabase fout:", error);
-  } else {
-    console.log("Supabase OK:", data);
-  }
+  console.log('data:', data);
+  console.log('count:', count);
+  console.log('error:', error);
 }
 
-test();
+testSupabase();
