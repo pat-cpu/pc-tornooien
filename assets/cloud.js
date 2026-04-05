@@ -1,8 +1,6 @@
-// cloud.js
 import { supabase } from './supabase.js';
 import { getToernooien, setToernooien } from './store.js';
 
-// Supabase → lokaal object
 function rowToTournament(row) {
   return {
     id: row.id,
@@ -15,10 +13,9 @@ function rowToTournament(row) {
   };
 }
 
-// data ophalen uit Supabase
 export async function fetchToernooienFromCloud() {
   const { data, error } = await supabase
-    .from('tournaments') // ✅ juiste tabelnaam
+    .from('tournaments')
     .select('*')
     .order('updated_at', { ascending: false });
 
@@ -27,12 +24,11 @@ export async function fetchToernooienFromCloud() {
   return (data ?? []).map(rowToTournament);
 }
 
-// cloud → lokaal zetten (merge)
 export async function pullFromCloud() {
   const local = getToernooien();
   const cloud = await fetchToernooienFromCloud();
 
-  const map = new Map(local.map(t => [t.id, t]));
+  const map = new Map(local.map(item => [item.id, item]));
 
   for (const cloudItem of cloud) {
     const localItem = map.get(cloudItem.id);
@@ -52,6 +48,5 @@ export async function pullFromCloud() {
 
   const merged = [...map.values()];
   setToernooien(merged);
-
   return merged;
 }

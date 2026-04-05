@@ -1,13 +1,12 @@
-import { supabase } from './supabase.js'; // ← jouw bestaande lijn laten staan
+import { pullFromCloud } from './cloud.js';
 
-async function testSupabase() {
-  const { data, error, count } = await supabase
-    .from('tournaments')
-    .select('*', { count: 'exact' });
-
-  console.log('data:', data);
-  console.log('count:', count);
-  console.log('error:', error);
+async function testPull() {
+  try {
+    const items = await pullFromCloud();
+    console.log('Cloud naar localStorage OK:', items);
+  } catch (error) {
+    console.error('Cloud ophalen mislukt:', error);
+  }
 }
 
-testSupabase();
+testPull();
