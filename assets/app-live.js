@@ -1,7 +1,9 @@
 console.log("APP LIVE 20260405a");
-import { getToernooien } from './store.js';
+import { getToernooien } from "./store.js?v=20260405a";
+import { syncNow } from "./cloud.js?v=20260405a";
 
-console.log('UI localStorage check:', getToernooien());
+console.log("UI localStorage check:", getToernooien());
+
 import {
   escapeHtml as esc,
   norm,
@@ -532,13 +534,13 @@ function render() {
 // ============================
 async function refreshFromSource() {
   try {
-    const arr = await loadAll();
+    const arr = await syncNow();
     const normalized = normalizeList(arr);
     setData(normalized, { error: "" });
     writeCache(normalized);
-    setSyncStatus("ok", "● lokaal geladen");
+    setSyncStatus("ok", "● sync ok");
   } catch (e) {
-    const cached = normalizeList(readCache());
+    const cached = normalizeList(getToernooien());
     setData(cached, { error: e?.message || String(e) });
 
     if (cached.length) {
@@ -548,7 +550,6 @@ async function refreshFromSource() {
     }
   }
 }
-
 async function importAllTournaments(arr) {
   await clearAll();
 
@@ -839,4 +840,4 @@ if (fStatus?.closest(".field")) {
   await refreshFromSource();
   bindListClicksOnce();
 })();
-import "./supabase-test.js";
+// import "./supabase-test.js";
