@@ -1,4 +1,4 @@
-import { supabase } from './supabase-client.js'; // laat jouw bestaande pad staan
+import { supabase } from './supabase.js'; // ← jouw bestaande lijn laten staan
 
 async function testSupabase() {
   const { data, error, count } = await supabase
