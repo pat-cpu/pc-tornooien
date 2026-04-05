@@ -26,11 +26,19 @@ Opslaan als:
 
 
 C:\Users\patri\Documenten\zomertornooien\GIT_HANDLEIDING.md
-
-
 En dan:
 
 ```bash
 git add .
 git commit -m "add markdown guide"
 git push
+
+
+---------------------------
+python -m pip install flask-cors
+
+--------------------------------
+pushen
+git add .
+git commit -m "update"
+git push origin main
