@@ -1,7 +1,6 @@
 import { supabase } from './supabase.js';
 import { getToernooien, setToernooien } from './store.js';
 
-// Supabase -> lokaal
 function rowToTournament(row) {
   return {
     id: row.id,
@@ -16,11 +15,11 @@ function rowToTournament(row) {
     status_code: row.status_code ?? '',
     played_at: row.played_at ?? '',
     note: row.note ?? '',
-    updatedAt: row.updated_at ?? null
+    updatedAt: row.updated_at ?? null,
+    deleted: row.deleted ?? false
   };
 }
 
-// lokaal -> Supabase
 function tournamentToRow(item) {
   return {
     id: item.id,
@@ -35,7 +34,8 @@ function tournamentToRow(item) {
     status_code: item.status_code ?? '',
     played_at: item.played_at ?? '',
     note: item.note ?? '',
-    updated_at: item.updatedAt ?? new Date().toISOString()
+    updated_at: item.updatedAt ?? new Date().toISOString(),
+    deleted: item.deleted ?? false
   };
 }
 
@@ -80,13 +80,10 @@ export async function pullFromCloud() {
 export async function pushAllToCloud() {
   const items = getToernooien();
 
-  const rows = items.map(item => {
-    const withUpdatedAt = {
-      ...item,
-      updatedAt: item.updatedAt ?? new Date().toISOString()
-    };
-    return tournamentToRow(withUpdatedAt);
-  });
+  const rows = items.map(item => ({
+    ...tournamentToRow(item),
+    updated_at: item.updatedAt ?? new Date().toISOString()
+  }));
 
   const { data, error } = await supabase
     .from('tournaments')
