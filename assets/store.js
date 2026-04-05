@@ -1,6 +1,5 @@
 console.log("STORE VERSION STATIC 2026-04-05-B");
 
-const DATA_URL = "./data/tornooien.json";
 const STORAGE_KEY_CACHE = 'pc_tornooien_cache_v9';
 
 export function getToernooien() {
