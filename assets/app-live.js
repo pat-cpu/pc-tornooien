@@ -500,12 +500,10 @@ function render() {
 
   listEl.innerHTML = DATA.map(card).join("");
   return;
-}
   renderChips();
 
-    const q = (qEl?.value || "").trim();
+  const q = (qEl?.value || "").trim();
   const filtered = DATA.filter(matchesChip).filter(x => matchesQuery(x, q));
-  console.log("RENDER filtered:", filtered);
 
   if (!filtered.length) {
     if (loadError && !DATA.length) {
