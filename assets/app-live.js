@@ -1,4 +1,4 @@
-console.log("APP LIVE 20260402e");
+console.log("APP LIVE 20260405a");
 
 import {
   escapeHtml as esc,
@@ -8,16 +8,18 @@ import {
   statusFromLegacyText,
   STATUS,
   statusLabel
-} from "./model.js?v=20260402e";
+} from "./model.js?v=20260405a";
 
 import {
   loadAll,
-  saveAll,
   clearAll,
   readCache,
-  writeCache
-} from "./store.js?v=20260402e";
-
+  writeCache,
+  addTournament,
+  updateTournament,
+  deleteTournament,
+  getTournamentById
+} from "./store.js?v=20260405a";
 
 // ============================
 // DOM refs
@@ -89,7 +91,6 @@ const toastCloseBtn = document.getElementById("toastClose");
 // ============================
 let DATA = [];
 let activeChip = "Komend";
-//let activeChip = "Alles";
 let editingId = null;
 let loadError = "";
 let listClickBound = false;
@@ -197,7 +198,7 @@ function downloadBackup() {
 
 function autoBackupAfterSave() {
   showToast({
-    text: 'Opgeslagen op server. Tik op "Download backup" om een reservekopie te bewaren.'
+    text: 'Opgeslagen. Tik op "Download backup" om een reservekopie te bewaren.'
   });
 }
 
@@ -214,14 +215,14 @@ function stableId({ date_iso, club, spel, time }) {
 }
 
 function normalizeItem(x, i = 0) {
-  const date_iso = String(x?.date_iso || "").slice(0, 10);
-  const club = norm(x?.club);
-  const spel = norm(x?.spel);
-  const time = norm(x?.time);
+  const date_iso = String(x?.date_iso || x?.datum || "").slice(0, 10);
+  const club = norm(x?.club || x?.locatie || "");
+  const spel = norm(x?.spel || "");
+  const time = norm(x?.time || "");
 
   const status_code = x?.status_code
-    ? String(x.status_code)
-    : statusFromLegacyText(x?.status);
+  ? String(x.status_code)
+  : statusFromLegacyText(x?.status);
 
   const id = String(
     x?.id ||
@@ -229,18 +230,22 @@ function normalizeItem(x, i = 0) {
   );
 
   return {
+    ...x,
     id,
     date_iso,
     date: x?.date || toDisplayDate(date_iso),
     club,
     spel,
     time,
-    category: norm(x?.category),
-    rounds: norm(x?.rounds),
-    team: norm(x?.team),
+    category: norm(x?.category || x?.categorie || ""),
+    rounds: norm(x?.rounds || ""),
+    team: norm(x?.team || ""),
     status_code,
     played_at: x?.played_at || "",
-    note: norm(x?.note),
+    note: norm(x?.note || x?.notities || ""),
+    created_at: x?.created_at || "",
+    updated_at: x?.updated_at || "",
+    deleted: Boolean(x?.deleted)
   };
 }
 
@@ -443,14 +448,12 @@ function actionButtons(item) {
 function card(item) {
   const badges = [];
 
-  // Status badge (BELANGRIJK)
   if (item.status_code) {
     badges.push(
       `<span class="badge badge-status">${esc(statusLabel(item.status_code))}</span>`
     );
   }
 
-  // Eventuele categorie badge
   if (item.category) {
     badges.push(
       `<span class="badge">${esc(item.category)}</span>`
@@ -461,7 +464,7 @@ function card(item) {
     ["Spelvorm", item.spel || "—"],
     ["Uur", item.time || "—"],
     ["Ronden", item.rounds || "—"],
-    ["Team", item.team || "—"],
+    ["Team", item.team || "—"]
   ].map(([k, v]) => `
     <div class="item">
       <div class="label">${esc(k)}</div>
@@ -525,20 +528,13 @@ function render() {
 // ============================
 // Data loading / saving
 // ============================
-async function replaceAll(next) {
-  const arr = normalizeList(next);
-  await saveAll(arr);
-  setData(arr, { error: "" });
-  writeCache(arr);
-  setSyncStatus("ok", "● server bewaard");
-}
-
 async function refreshFromSource() {
   try {
     const arr = await loadAll();
-    setData(arr, { error: "" });
-    writeCache(arr);
-    setSyncStatus("ok", "● server gesynchroniseerd");
+    const normalized = normalizeList(arr);
+    setData(normalized, { error: "" });
+    writeCache(normalized);
+    setSyncStatus("ok", "● lokaal geladen");
   } catch (e) {
     const cached = normalizeList(readCache());
     setData(cached, { error: e?.message || String(e) });
@@ -551,6 +547,32 @@ async function refreshFromSource() {
   }
 }
 
+async function importAllTournaments(arr) {
+  await clearAll();
+
+  for (const item of normalizeList(arr)) {
+    await addTournament(item);
+  }
+
+  await refreshFromSource();
+}
+
+function formToItemBase() {
+  return {
+    id: editingId || createUuid(),
+    date_iso: fDate.value,
+    date: toDisplayDate(fDate.value),
+    time: fTime.value || "",
+    club: fClub.value || "",
+    spel: fSpel.value || "",
+    category: fCategory?.value === "AC" ? "AllCat" : (fCategory?.value || ""),
+    rounds: fRounds?.value || "",
+    status_code: fStatus?.value || "planned",
+    team: fTeam.value || "",
+    note: fNote.value || ""
+  };
+}
+
 // ============================
 // Modal Add/Edit
 // ============================
@@ -559,7 +581,7 @@ function openAdd() {
   editTitle.textContent = "Tornooi toevoegen";
 
   fDate.value = todayLocalISO();
-  fStatus.value = "planned";
+  if (fStatus) fStatus.value = "planned";
   fTime.value = "";
   fClub.value = "";
   fSpel.value = "";
@@ -583,7 +605,7 @@ function openEdit(id) {
   editTitle.textContent = "Tornooi bewerken";
 
   fDate.value = item.date_iso || "";
-  fStatus.value = item.status_code || "planned";
+  if (fStatus) fStatus.value = item.status_code || "planned";
   fTime.value = item.time || "";
   fClub.value = item.club || "";
   fSpel.value = item.spel || "";
@@ -621,29 +643,25 @@ async function saveFromModal() {
     return;
   }
 
-  const base = {
-    id: editingId || createUuid(),
-    date_iso: fDate.value,
-    time: fTime.value,
-    club: fClub.value,
-    spel: fSpel.value,
-    category: fCategory?.value === "AC" ? "AllCat" : (fCategory?.value || ""),
-    rounds: fRounds?.value || "",
-    status_code: fStatus.value || "planned",
-    team: fTeam.value,
-    note: fNote.value
-  };
-
-  const item = normalizeItem(base, Date.now());
-
-  ensureArrayData();
-
-  const next = editingId
-    ? DATA.map(x => x.id === editingId ? item : x)
-    : [...DATA, item];
+  const item = normalizeItem(formToItemBase(), Date.now());
 
   try {
-    await replaceAll(next);
+    if (editingId) {
+      const existing = await getTournamentById(editingId);
+
+      if (!existing) {
+        throw new Error("Bestaand tornooi niet gevonden.");
+      }
+
+      await updateTournament(editingId, {
+        ...existing,
+        ...item
+      });
+    } else {
+      await addTournament(item);
+    }
+
+    await refreshFromSource();
     closeEdit();
     autoBackupAfterSave();
   } catch (e) {
@@ -654,23 +672,23 @@ async function saveFromModal() {
 async function deleteFromModal() {
   if (!editingId) return;
 
-  ensureArrayData();
-  const idx = DATA.findIndex(x => String(x.id) === String(editingId));
-  if (idx < 0) return;
-
-  const removed = DATA[idx];
-  const next = DATA.filter(x => String(x.id) !== String(editingId));
+  const removed = DATA.find(x => String(x.id) === String(editingId));
+  if (!removed) return;
 
   try {
-    await replaceAll(next);
+    await deleteTournament(editingId);
+    await refreshFromSource();
     closeEdit();
     autoBackupAfterSave();
 
     showToast({
       text: "Tornooi verwijderd.",
       undoFn: async () => {
-        const restored = normalizeList([...DATA, removed]);
-        await replaceAll(restored);
+        await addTournament({
+          ...removed,
+          deleted: false
+        });
+        await refreshFromSource();
       }
     });
   } catch (e) {
@@ -725,9 +743,12 @@ async function applyJSON() {
   try {
     const payload = JSON.parse(jsonBox.value || "{}");
     const arr = Array.isArray(payload) ? payload : payload.tournaments;
-    if (!Array.isArray(arr)) throw new Error("Geen lijst gevonden");
 
-    await replaceAll(normalizeList(arr));
+    if (!Array.isArray(arr)) {
+      throw new Error("Geen lijst gevonden");
+    }
+
+    await importAllTournaments(arr);
     closeJSON();
     autoBackupAfterSave();
     alert('Import OK. Tik nu op "Download backup".');
@@ -746,7 +767,7 @@ async function clearEverything() {
     await clearAll();
     setData([], { error: "" });
     writeCache([]);
-    setSyncStatus("ok", "● server leeggemaakt");
+    setSyncStatus("ok", "● lokaal leeggemaakt");
     showToast({ text: "Alles gewist." });
   } catch (e) {
     alert("Wissen mislukt: " + (e?.message || e));
