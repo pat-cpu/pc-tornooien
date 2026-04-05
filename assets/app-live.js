@@ -496,10 +496,14 @@ function card(item) {
 
 function render() {
   ensureArrayData();
+  console.log("RENDER DATA:", DATA);
+  console.log("RENDER activeChip:", activeChip);
+
   renderChips();
 
-  const q = (qEl?.value || "").trim();
+    const q = (qEl?.value || "").trim();
   const filtered = DATA.filter(matchesChip).filter(x => matchesQuery(x, q));
+  console.log("RENDER filtered:", filtered);
 
   if (!filtered.length) {
     if (loadError && !DATA.length) {
@@ -535,13 +539,26 @@ function render() {
 async function refreshFromSource() {
   try {
     const arr = await syncNow();
+    console.log("refreshFromSource sync arr:", arr);
+
     const normalized = normalizeList(arr);
-    setData(normalized, { error: "" });
+    console.log("refreshFromSource normalized:", normalized);
+
+    DATA = normalized;
+    loadError = "";
+    render();
+
     writeCache(normalized);
     setSyncStatus("ok", "● sync ok");
   } catch (e) {
+    console.error("refreshFromSource fout:", e);
+
     const cached = normalizeList(getToernooien());
-    setData(cached, { error: e?.message || String(e) });
+    console.log("refreshFromSource cached:", cached);
+
+    DATA = cached;
+    loadError = e?.message || String(e);
+    render();
 
     if (cached.length) {
       setSyncStatus("bad", "● offline, cache actief");
