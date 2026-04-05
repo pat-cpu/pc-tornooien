@@ -1,15 +1,14 @@
 console.log("STORE VERSION STATIC 2026-04-05-B");
 
 const DATA_URL = "./data/tornooien.json";
-const STORAGE_KEY_CACHE = "pc_tornooien_cache_v9";
-const KEY = 'tornooien';
+const STORAGE_KEY_CACHE = 'pc_tornooien_cache_v9';
 
 export function getToernooien() {
-  return JSON.parse(localStorage.getItem(KEY) || '[]');
+  return JSON.parse(localStorage.getItem(STORAGE_KEY_CACHE) || '[]');
 }
 
 export function setToernooien(items) {
-  localStorage.setItem(KEY, JSON.stringify(items));
+  localStorage.setItem(STORAGE_KEY_CACHE, JSON.stringify(items));
 }
 function nowIso() {
   return new Date().toISOString();
