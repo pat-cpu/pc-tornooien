@@ -496,10 +496,6 @@ function card(item) {
 
 function render() {
   ensureArrayData();
-  console.log("RENDER DATA:", DATA);
-
-  listEl.innerHTML = DATA.map(card).join("");
-  return;
   renderChips();
 
   const q = (qEl?.value || "").trim();
