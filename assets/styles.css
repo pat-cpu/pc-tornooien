@@ -239,7 +239,7 @@ textarea{ min-height: 90px; resize: vertical; }
 
 .modalFooter{
   flex: 0 0 auto;
-
+ font-size: 10;
   /* Footer blijft zichtbaar op iPhone */
   position: sticky;
   bottom: 0;
@@ -254,3 +254,9 @@ textarea{ min-height: 90px; resize: vertical; }
 }
 #syncStatus.ok{ color: rgba(31,157,85,0.95); }
 #syncStatus.bad{ color: rgba(220,38,38,0.95); }
+
+
+
+
+
+
