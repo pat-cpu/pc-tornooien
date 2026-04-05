@@ -14,7 +14,7 @@
 body{
   margin:0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-  background: radial-gradient(1200px 600px at 10% -10%, rgba(89,105,184,0.35), transparent 60%),
+  background: radial-gradient(1200px 600px at 10% -10%, rgba(92, 114, 228, 0.35), transparent 60%),
               radial-gradient(1000px 700px at 110% 0%, rgba(31,157,85,0.18), transparent 55%),
               var(--bg);
   color: var(--text);
