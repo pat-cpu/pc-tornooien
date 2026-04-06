@@ -307,6 +307,40 @@ function mergeLocalAndCloud(localItems, cloudItems) {
   });
 }
 
+function mergeLocalAndCloud(localItems, cloudItems) {
+  const map = new Map();
+
+  for (const item of normalizeList(localItems)) {
+    if (!item.id) continue;
+    map.set(String(item.id), item);
+  }
+
+  for (const cloud of normalizeList(cloudItems)) {
+    if (!cloud.id) continue;
+
+    const key = String(cloud.id);
+    const local = map.get(key);
+
+    if (!local) {
+      map.set(key, cloud);
+      continue;
+    }
+
+    const localMs = toMs(local.updatedAt || local.updated_at);
+    const cloudMs = toMs(cloud.updatedAt || cloud.updated_at);
+
+    if (cloudMs > localMs) {
+      map.set(key, cloud);
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) => {
+    const d = (a.date_iso || "").localeCompare(b.date_iso || "");
+    if (d !== 0) return d;
+    return String(a.id).localeCompare(String(b.id));
+  });
+}
+
 function findLocalNewerThanCloud(localItems, cloudItems) {
   const cloudMap = new Map(
     normalizeList(cloudItems)
@@ -326,7 +360,6 @@ function findLocalNewerThanCloud(localItems, cloudItems) {
     return localMs > cloudMs;
   });
 }
-
 
 // ============================
 // Dropdown helpers
@@ -614,7 +647,10 @@ function render() {
 
   console.log("Aantal gerenderde kaarten:", filtered.length);
 }
-
+function toMs(value) {
+  const ms = Date.parse(value || "");
+  return Number.isNaN(ms) ? 0 : ms;
+}
 // ============================
 // Data loading / saving
 // ============================

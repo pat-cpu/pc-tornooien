@@ -38,10 +38,24 @@ git push
 python -m pip install flask-cors
 
 --------------------------------
+
+
+
+
+
 pushen
+
+
+
+
+
 git add .
 git commit -m "update"
 git push origin main
+
+
+
+
 
 
 ----------------------------
