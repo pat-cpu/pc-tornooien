@@ -1,5 +1,5 @@
 console.log("APP LIVE 20260405b");
-
+import { pullFromCloud } from "./cloud.js?v=20260405a";
 import {
   getToernooien,
   loadAll,
@@ -694,9 +694,10 @@ async function saveFromModal() {
       await addTournament(item);
     }
 
-    await refreshFromSource();
-    closeEdit();
-    autoBackupAfterSave();
+    const localNow = normalizeList(getToernooien());
+setData(localNow, { error: "" });
+closeEdit();
+autoBackupAfterSave();
   } catch (e) {
     alert("Opslaan mislukt: " + (e?.message || e));
   }
@@ -710,9 +711,10 @@ async function deleteFromModal() {
 
   try {
     await deleteTournament(editingId);
-    await refreshFromSource();
-    closeEdit();
-    autoBackupAfterSave();
+    const localNow = normalizeList(getToernooien());
+setData(localNow, { error: "" });
+closeEdit();
+autoBackupAfterSave();
 
     showToast({
       text: "Tornooi verwijderd.",
@@ -783,7 +785,7 @@ async function applyJSON() {
       throw new Error("Geen lijst gevonden");
     }
 
-    await importAllTournaments(arr);
+    await refreshFromSource();
     closeJSON();
     autoBackupAfterSave();
     alert('Import OK. Tik nu op "Download backup".');
@@ -869,7 +871,7 @@ if (fStatus?.closest(".field")) {
 
 // init
 (async () => {
-  await refreshFromSource();
+  await loadFromCloudOnStart();
   bindListClicksOnce();
 })();
 

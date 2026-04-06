@@ -1,4 +1,4 @@
-console.log("STORE VERSION STATIC 2026-04-05-C");
+console.log("STORE VERSION STATIC 2026-04-06-A");
 
 const DATA_URL = "./data/tornooien.json";
 const STORAGE_KEY_CACHE = "pc_tornooien_cache_v9";
@@ -15,14 +15,49 @@ function normalizeArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function normalizeTournament(item) {
+  const x = item ?? {};
+
+  return {
+    ...x,
+    id: x.id ?? "",
+    date_iso: x.date_iso ?? "",
+    date: x.date ?? "",
+    club: x.club ?? "",
+    spel: x.spel ?? "",
+    time: x.time ?? "",
+    category: x.category ?? "",
+    rounds: x.rounds ?? "",
+    team: x.team ?? "",
+    status_code: x.status_code ?? "",
+    played_at: x.played_at ?? "",
+    note: x.note ?? "",
+    deleted: Boolean(x.deleted),
+
+    // Compatibel met cloud.js en app.js
+    updatedAt: x.updatedAt ?? x.updated_at ?? "",
+    updated_at: x.updated_at ?? x.updatedAt ?? ""
+  };
+}
+
+function normalizeTournamentList(items) {
+  return normalizeArray(items).map(normalizeTournament);
+}
+
 export function getToernooien() {
-  return normalizeArray(
-    parseJsonSafe(localStorage.getItem(STORAGE_KEY_CACHE) || "[]", [])
-  );
+  const raw = parseJsonSafe(localStorage.getItem(STORAGE_KEY_CACHE) || "[]", []);
+  return normalizeTournamentList(raw);
 }
 
 export function setToernooien(items) {
-  localStorage.setItem(STORAGE_KEY_CACHE, JSON.stringify(normalizeArray(items)));
+  localStorage.setItem(
+    STORAGE_KEY_CACHE,
+    JSON.stringify(normalizeTournamentList(items))
+  );
 }
 
 // ---- compat met je bestaande app-live.js ----
@@ -45,7 +80,7 @@ export async function loadAll() {
   }
 
   const data = await res.json();
-  const arr = normalizeArray(data);
+  const arr = normalizeTournamentList(data);
   setToernooien(arr);
   return arr;
 }
@@ -60,9 +95,18 @@ export async function getTournamentById(id) {
 
 export async function addTournament(item) {
   const items = getToernooien();
-  items.push(item);
+
+  const timestamp = item?.updatedAt || item?.updated_at || nowIso();
+
+  const withTimestamp = normalizeTournament({
+    ...item,
+    updatedAt: timestamp,
+    updated_at: timestamp
+  });
+
+  items.push(withTimestamp);
   setToernooien(items);
-  return item;
+  return withTimestamp;
 }
 
 export async function updateTournament(id, nextItem) {
@@ -73,9 +117,17 @@ export async function updateTournament(id, nextItem) {
     throw new Error("Tornooi niet gevonden");
   }
 
-  items[idx] = nextItem;
+  const timestamp = nowIso();
+
+  const withTimestamp = normalizeTournament({
+    ...nextItem,
+    updatedAt: timestamp,
+    updated_at: timestamp
+  });
+
+  items[idx] = withTimestamp;
   setToernooien(items);
-  return nextItem;
+  return withTimestamp;
 }
 
 export async function deleteTournament(id) {

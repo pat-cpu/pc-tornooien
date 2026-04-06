@@ -1,16 +1,30 @@
-console.log("APP VERSION TEST 2026-04-02-A");
+console.log("APP LIVE 20260405b");
+import { pullFromCloud } from "./cloud.js?v=20260405a";
 import {
-  escapeHtml, norm, toDisplayDate, todayMidnight,
-  statusFromLegacyText
-} from "./model.js";
-
-import {
+  getToernooien,
   loadAll,
-  saveAll,
   clearAll,
   readCache,
-  writeCache
-} from "./store.js";
+  writeCache,
+  addTournament,
+  updateTournament,
+  deleteTournament,
+  getTournamentById
+} from "./store.js?v=20260405c";
+
+import { syncNow } from "./cloud.js?v=20260405a";
+
+console.log("UI localStorage check:", getToernooien());
+
+import {
+  escapeHtml as esc,
+  norm,
+  toDisplayDate,
+  todayMidnight,
+  statusFromLegacyText,
+  STATUS,
+  statusLabel
+} from "./model.js?v=20260405a";
 
 // ============================
 // DOM refs
@@ -189,7 +203,7 @@ function downloadBackup() {
 
 function autoBackupAfterSave() {
   showToast({
-    text: 'Opgeslagen op server. Tik op "Download backup" om een reservekopie te bewaren.'
+    text: 'Opgeslagen. Tik op "Download backup" om een reservekopie te bewaren.'
   });
 }
 
@@ -206,10 +220,10 @@ function stableId({ date_iso, club, spel, time }) {
 }
 
 function normalizeItem(x, i = 0) {
-  const date_iso = String(x?.date_iso || "").slice(0, 10);
-  const club = norm(x?.club);
-  const spel = norm(x?.spel);
-  const time = norm(x?.time);
+  const date_iso = String(x?.date_iso || x?.datum || "").slice(0, 10);
+  const club = norm(x?.club || x?.locatie || "");
+  const spel = norm(x?.spel || "");
+  const time = norm(x?.time || "");
 
   const status_code = x?.status_code
     ? String(x.status_code)
@@ -221,18 +235,22 @@ function normalizeItem(x, i = 0) {
   );
 
   return {
+    ...x,
     id,
     date_iso,
     date: x?.date || toDisplayDate(date_iso),
     club,
     spel,
     time,
-    category: norm(x?.category),
-    rounds: norm(x?.rounds),
-    team: norm(x?.team),
+    category: norm(x?.category || x?.categorie || ""),
+    rounds: norm(x?.rounds || ""),
+    team: norm(x?.team || ""),
     status_code,
     played_at: x?.played_at || "",
-    note: norm(x?.note),
+    note: norm(x?.note || x?.notities || ""),
+    created_at: x?.created_at || "",
+    updated_at: x?.updated_at || x?.updatedAt || "",
+    deleted: Boolean(x?.deleted)
   };
 }
 
@@ -251,6 +269,8 @@ function normalizeList(arr) {
 // Dropdown helpers
 // ============================
 function buildSelectOptions(selEl, choices, selectedValue) {
+  if (!selEl) return;
+
   const normalized = Array.from(
     new Set((choices || []).map(s => norm(s)).filter(Boolean))
   );
@@ -262,7 +282,7 @@ function buildSelectOptions(selEl, choices, selectedValue) {
   ];
 
   selEl.innerHTML = opts
-    .map(o => `<option value="${escapeHtml(o.v)}">${escapeHtml(o.t)}</option>`)
+    .map(o => `<option value="${esc(o.v)}">${esc(o.t)}</option>`)
     .join("");
 
   const sv = norm(selectedValue);
@@ -278,7 +298,7 @@ function buildSelectOptions(selEl, choices, selectedValue) {
 }
 
 function wireCustomSelectOnce(selEl, wrapEl, inputEl) {
-  if (!selEl || selEl.dataset.wired === "1") return;
+  if (!selEl || !wrapEl || !inputEl || selEl.dataset.wired === "1") return;
 
   selEl.dataset.wired = "1";
 
@@ -308,13 +328,13 @@ function getTeamChoicesFromData() {
 }
 
 function refreshModalSelects() {
-  buildSelectOptions(fClubSel, CLUB_CHOICES, fClub.value);
+  buildSelectOptions(fClubSel, CLUB_CHOICES, fClub?.value || "");
   fClubSel?._syncCustom?.();
 
-  buildSelectOptions(fSpelSel, SPEL_CHOICES, fSpel.value);
+  buildSelectOptions(fSpelSel, SPEL_CHOICES, fSpel?.value || "");
   fSpelSel?._syncCustom?.();
 
-  buildSelectOptions(fTeamSel, getTeamChoicesFromData(), fTeam.value);
+  buildSelectOptions(fTeamSel, getTeamChoicesFromData(), fTeam?.value || "");
   fTeamSel?._syncCustom?.();
 }
 
@@ -357,18 +377,35 @@ toastCloseBtn?.addEventListener("click", hideToast);
 // ============================
 // Filtering
 // ============================
-function matchesChip(item) {
+function matchesFilter(item, filterName) {
+  if (filterName === "Alles") return true;
+
   const today = todayMidnight();
   const d = new Date(`${item.date_iso || ""}T00:00:00`);
-  const isPast = !Number.isNaN(d.getTime()) && d < today;
+  const hasValidDate = !Number.isNaN(d.getTime());
+  const isPast = hasValidDate && d < today;
+  const statusCode = item.status_code || STATUS.PLANNED;
 
-  switch (activeChip) {
+  switch (filterName) {
     case "Komend":
-      return !isPast;
-    case "Alles":
+      return hasValidDate && !isPast && statusCode !== STATUS.PLAYED;
+
+    case "Ingeschreven":
+      return statusCode === STATUS.REGISTERED;
+
+    case "Betaald":
+      return statusCode === STATUS.PAID;
+
+    case "Gespeeld":
+      return isPast || statusCode === STATUS.PLAYED;
+
     default:
       return true;
   }
+}
+
+function matchesChip(item) {
+  return matchesFilter(item, activeChip);
 }
 
 function matchesQuery(item, q) {
@@ -392,11 +429,13 @@ function matchesQuery(item, q) {
 // Rendering
 // ============================
 function renderChips() {
+  if (!chipsEl) return;
+
   if (!CHIP_ITEMS.includes(activeChip)) activeChip = "Komend";
 
   chipsEl.innerHTML = CHIP_ITEMS.map(label => {
     const cls = label === activeChip ? "chip active" : "chip";
-    return `<button class="${cls}" data-chip="${escapeHtml(label)}">${escapeHtml(label)}</button>`;
+    return `<button class="${cls}" data-chip="${esc(label)}">${esc(label)}</button>`;
   }).join("");
 
   chipsEl.querySelectorAll("button").forEach(btn => {
@@ -410,37 +449,46 @@ function renderChips() {
 function actionButtons(item) {
   return `
     <div class="cardActions">
-      <button class="btn ghost" data-act="edit" data-id="${escapeHtml(item.id)}">✏️ Bewerken</button>
+      <button class="btn ghost" data-act="edit" data-id="${esc(item.id)}">✏️ Bewerken</button>
     </div>
   `;
 }
 
 function card(item) {
   const badges = [];
+
+  if (item.status_code) {
+    badges.push(
+      `<span class="badge badge-status">${esc(statusLabel(item.status_code))}</span>`
+    );
+  }
+
   if (item.category) {
-    badges.push(`<span class="badge">${escapeHtml(item.category)}</span>`);
+    badges.push(
+      `<span class="badge">${esc(item.category)}</span>`
+    );
   }
 
   const meta = [
     ["Spelvorm", item.spel || "—"],
     ["Uur", item.time || "—"],
     ["Ronden", item.rounds || "—"],
-    ["Team", item.team || "—"],
+    ["Team", item.team || "—"]
   ].map(([k, v]) => `
     <div class="item">
-      <div class="label">${escapeHtml(k)}</div>
-      <div class="value">${escapeHtml(v)}</div>
+      <div class="label">${esc(k)}</div>
+      <div class="value">${esc(v)}</div>
     </div>
   `).join("");
 
-  const note = item.note ? `<div class="note">${escapeHtml(item.note)}</div>` : "";
+  const note = item.note ? `<div class="note">${esc(item.note)}</div>` : "";
 
   return `
     <article class="card">
       <div class="row">
         <div>
-          <div class="date">${escapeHtml(item.date)}</div>
-          <div class="club">${escapeHtml(item.club || "—")}</div>
+          <div class="date">${esc(item.date)}</div>
+          <div class="club">${esc(item.club || "—")}</div>
         </div>
         <div class="badges">${badges.join("")}</div>
       </div>
@@ -453,6 +501,15 @@ function card(item) {
 
 function render() {
   ensureArrayData();
+
+  console.log("RENDER DATA:", DATA);
+  console.log("listEl:", listEl);
+
+  if (!listEl) {
+    console.error("listEl niet gevonden");
+    return;
+  }
+
   renderChips();
 
   const q = (qEl?.value || "").trim();
@@ -460,7 +517,7 @@ function render() {
 
   if (!filtered.length) {
     if (loadError && !DATA.length) {
-      listEl.innerHTML = `<div class="empty">Fout bij laden: ${escapeHtml(loadError)}</div>`;
+      listEl.innerHTML = `<div class="empty">Fout bij laden: ${esc(loadError)}</div>`;
     } else {
       listEl.innerHTML = `<div class="empty">Geen resultaten.</div>`;
     }
@@ -475,37 +532,45 @@ function render() {
     return !Number.isNaN(d.getTime()) && d >= today0;
   });
 
-  statTotal.textContent = upcoming.length;
-  statVisible.textContent = filtered.length;
+  if (statTotal) statTotal.textContent = upcoming.length;
+  if (statVisible) statVisible.textContent = filtered.length;
   if (statIn) statIn.textContent = "—";
 
   const next = upcoming
     .map(x => ({ ...x, d: new Date(`${x.date_iso || ""}T00:00:00`) }))
     .sort((a, b) => a.d - b.d)[0];
 
-  statNext.textContent = next ? next.date : "—";
+  if (statNext) statNext.textContent = next ? next.date : "—";
+
+  console.log("Aantal gerenderde kaarten:", filtered.length);
 }
 
 // ============================
 // Data loading / saving
 // ============================
-async function replaceAll(next) {
-  const arr = normalizeList(next);
-  await saveAll(arr);
-  setData(arr, { error: "" });
-  writeCache(arr);
-  setSyncStatus("ok", "● server bewaard");
-}
-
 async function refreshFromSource() {
   try {
-    const arr = await loadAll();
-    setData(arr, { error: "" });
-    writeCache(arr);
-    setSyncStatus("ok", "● server gesynchroniseerd");
+    const arr = await syncNow();
+    console.log("refreshFromSource sync arr:", arr);
+
+    const normalized = normalizeList(arr);
+    console.log("refreshFromSource normalized:", normalized);
+
+    DATA = normalized;
+    loadError = "";
+    render();
+
+    writeCache(normalized);
+    setSyncStatus("ok", "● sync ok");
   } catch (e) {
-    const cached = normalizeList(readCache());
-    setData(cached, { error: e?.message || String(e) });
+    console.error("refreshFromSource fout:", e);
+
+    const cached = normalizeList(getToernooien());
+    console.log("refreshFromSource cached:", cached);
+
+    DATA = cached;
+    loadError = e?.message || String(e);
+    render();
 
     if (cached.length) {
       setSyncStatus("bad", "● offline, cache actief");
@@ -515,21 +580,48 @@ async function refreshFromSource() {
   }
 }
 
+async function importAllTournaments(arr) {
+  await clearAll();
+
+  for (const item of normalizeList(arr)) {
+    await addTournament(item);
+  }
+
+  await refreshFromSource();
+}
+
+function formToItemBase() {
+  return {
+    id: editingId || createUuid(),
+    date_iso: fDate?.value || "",
+    date: toDisplayDate(fDate?.value || ""),
+    time: fTime?.value || "",
+    club: fClub?.value || "",
+    spel: fSpel?.value || "",
+    category: fCategory?.value === "AC" ? "AllCat" : (fCategory?.value || ""),
+    rounds: fRounds?.value || "",
+    status_code: fStatus?.value || "planned",
+    team: fTeam?.value || "",
+    note: fNote?.value || ""
+  };
+}
+
 // ============================
 // Modal Add/Edit
 // ============================
 function openAdd() {
   editingId = null;
-  editTitle.textContent = "Tornooi toevoegen";
+  if (editTitle) editTitle.textContent = "Tornooi toevoegen";
 
-  fDate.value = todayLocalISO();
-  fTime.value = "";
-  fClub.value = "";
-  fSpel.value = "";
-  fTeam.value = "";
+  if (fDate) fDate.value = todayLocalISO();
+  if (fStatus) fStatus.value = "planned";
+  if (fTime) fTime.value = "";
+  if (fClub) fClub.value = "";
+  if (fSpel) fSpel.value = "";
+  if (fTeam) fTeam.value = "";
   if (fRounds) fRounds.value = "";
   if (fCategory) fCategory.value = "50+";
-  fNote.value = "";
+  if (fNote) fNote.value = "";
 
   refreshModalSelects();
 
@@ -543,13 +635,14 @@ function openEdit(id) {
   if (!item) return;
 
   editingId = item.id;
-  editTitle.textContent = "Tornooi bewerken";
+  if (editTitle) editTitle.textContent = "Tornooi bewerken";
 
-  fDate.value = item.date_iso || "";
-  fTime.value = item.time || "";
-  fClub.value = item.club || "";
-  fSpel.value = item.spel || "";
-  fTeam.value = item.team || "";
+  if (fDate) fDate.value = item.date_iso || "";
+  if (fStatus) fStatus.value = item.status_code || "planned";
+  if (fTime) fTime.value = item.time || "";
+  if (fClub) fClub.value = item.club || "";
+  if (fSpel) fSpel.value = item.spel || "";
+  if (fTeam) fTeam.value = item.team || "";
   if (fRounds) fRounds.value = item.rounds || "";
 
   const cat = (item.category || "").trim();
@@ -565,7 +658,7 @@ function openEdit(id) {
     : normalizedCat;
 
   if (fCategory) fCategory.value = finalCat;
-  fNote.value = item.note || "";
+  if (fNote) fNote.value = item.note || "";
 
   refreshModalSelects();
 
@@ -578,36 +671,33 @@ function closeEdit() {
 }
 
 async function saveFromModal() {
-  if (!fDate.value) {
+  if (!fDate?.value) {
     alert("Datum is verplicht.");
     return;
   }
 
-  const base = {
-    id: editingId || createUuid(),
-    date_iso: fDate.value,
-    time: fTime.value,
-    club: fClub.value,
-    spel: fSpel.value,
-    category: fCategory?.value === "AC" ? "AllCat" : (fCategory?.value || ""),
-    rounds: fRounds?.value || "",
-    status_code: "",
-    team: fTeam.value,
-    note: fNote.value
-  };
-
-  const item = normalizeItem(base, Date.now());
-
-  ensureArrayData();
-
-  const next = editingId
-    ? DATA.map(x => x.id === editingId ? item : x)
-    : [...DATA, item];
+  const item = normalizeItem(formToItemBase(), Date.now());
 
   try {
-    await replaceAll(next);
-    closeEdit();
-    autoBackupAfterSave();
+    if (editingId) {
+      const existing = await getTournamentById(editingId);
+
+      if (!existing) {
+        throw new Error("Bestaand tornooi niet gevonden.");
+      }
+
+      await updateTournament(editingId, {
+        ...existing,
+        ...item
+      });
+    } else {
+      await addTournament(item);
+    }
+
+    const localNow = normalizeList(getToernooien());
+setData(localNow, { error: "" });
+closeEdit();
+autoBackupAfterSave();
   } catch (e) {
     alert("Opslaan mislukt: " + (e?.message || e));
   }
@@ -616,23 +706,24 @@ async function saveFromModal() {
 async function deleteFromModal() {
   if (!editingId) return;
 
-  ensureArrayData();
-  const idx = DATA.findIndex(x => String(x.id) === String(editingId));
-  if (idx < 0) return;
-
-  const removed = DATA[idx];
-  const next = DATA.filter(x => String(x.id) !== String(editingId));
+  const removed = DATA.find(x => String(x.id) === String(editingId));
+  if (!removed) return;
 
   try {
-    await replaceAll(next);
-    closeEdit();
-    autoBackupAfterSave();
+    await deleteTournament(editingId);
+    const localNow = normalizeList(getToernooien());
+setData(localNow, { error: "" });
+closeEdit();
+autoBackupAfterSave();
 
     showToast({
       text: "Tornooi verwijderd.",
       undoFn: async () => {
-        const restored = normalizeList([...DATA, removed]);
-        await replaceAll(restored);
+        await addTournament({
+          ...removed,
+          deleted: false
+        });
+        await refreshFromSource();
       }
     });
   } catch (e) {
@@ -649,23 +740,25 @@ function openJSON(mode) {
   modalJSON.classList.add("show");
 
   if (mode === "export") {
-    jsonTitle.textContent = "Export (alles)";
-    jsonHint.textContent = "Kopieer dit als backup.";
-    jsonBox.value = JSON.stringify({
-      app: "pc-tornooien",
-      version: 1,
-      exported_at: new Date().toISOString(),
-      tournaments: DATA
-    }, null, 2);
-    btnApplyJSON.style.display = "none";
+    if (jsonTitle) jsonTitle.textContent = "Export (alles)";
+    if (jsonHint) jsonHint.textContent = "Kopieer dit als backup.";
+    if (jsonBox) {
+      jsonBox.value = JSON.stringify({
+        app: "pc-tornooien",
+        version: 1,
+        exported_at: new Date().toISOString(),
+        tournaments: DATA
+      }, null, 2);
+    }
+    if (btnApplyJSON) btnApplyJSON.style.display = "none";
   } else {
-    jsonTitle.textContent = "Import (alles)";
-    jsonHint.textContent = "Plak hier je export. Dit vervangt je lijst.";
-    jsonBox.value = "";
-    btnApplyJSON.style.display = "inline-block";
+    if (jsonTitle) jsonTitle.textContent = "Import (alles)";
+    if (jsonHint) jsonHint.textContent = "Plak hier je export. Dit vervangt je lijst.";
+    if (jsonBox) jsonBox.value = "";
+    if (btnApplyJSON) btnApplyJSON.style.display = "inline-block";
   }
 
-  jsonBox.focus();
+  jsonBox?.focus();
 }
 
 function closeJSON() {
@@ -674,10 +767,10 @@ function closeJSON() {
 
 async function copyJSON() {
   try {
-    await navigator.clipboard.writeText(jsonBox.value || "");
+    await navigator.clipboard.writeText(jsonBox?.value || "");
     alert("Gekopieerd.");
   } catch {
-    jsonBox.select();
+    jsonBox?.select();
     document.execCommand("copy");
     alert("Gekopieerd.");
   }
@@ -685,11 +778,14 @@ async function copyJSON() {
 
 async function applyJSON() {
   try {
-    const payload = JSON.parse(jsonBox.value || "{}");
+    const payload = JSON.parse(jsonBox?.value || "{}");
     const arr = Array.isArray(payload) ? payload : payload.tournaments;
-    if (!Array.isArray(arr)) throw new Error("Geen lijst gevonden");
 
-    await replaceAll(normalizeList(arr));
+    if (!Array.isArray(arr)) {
+      throw new Error("Geen lijst gevonden");
+    }
+
+    await refreshFromSource();
     closeJSON();
     autoBackupAfterSave();
     alert('Import OK. Tik nu op "Download backup".');
@@ -708,7 +804,7 @@ async function clearEverything() {
     await clearAll();
     setData([], { error: "" });
     writeCache([]);
-    setSyncStatus("ok", "● server leeggemaakt");
+    setSyncStatus("ok", "● lokaal leeggemaakt");
     showToast({ text: "Alles gewist." });
   } catch (e) {
     alert("Wissen mislukt: " + (e?.message || e));
@@ -719,7 +815,7 @@ async function clearEverything() {
 // Event delegation
 // ============================
 function bindListClicksOnce() {
-  if (listClickBound) return;
+  if (listClickBound || !listEl) return;
   listClickBound = true;
 
   listEl.addEventListener("click", (e) => {
@@ -775,6 +871,8 @@ if (fStatus?.closest(".field")) {
 
 // init
 (async () => {
-  await refreshFromSource();
+  await loadFromCloudOnStart();
   bindListClicksOnce();
 })();
+
+// import "./supabase-test.js";

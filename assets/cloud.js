@@ -1,5 +1,4 @@
 import { supabase } from './supabase.js';
-import { getToernooien, setToernooien } from './store.js';
 
 function rowToTournament(row) {
   return {
@@ -43,23 +42,19 @@ export async function fetchToernooienFromCloud() {
   const { data, error } = await supabase
     .from('tournaments')
     .select('*')
-    .order('updated_at', { ascending: false });
+    .order('date_iso', { ascending: true });
 
   if (error) throw error;
 
   return (data ?? []).map(rowToTournament);
 }
 
+// STAP 1: alleen lezen uit cloud, niets mergen, niets pushen
 export async function pullFromCloud() {
-  const local = getToernooien();
-  const cloud = await fetchToernooienFromCloud();
-
-  const merged = mergeToernooien(local, cloud);
-  setToernooien(merged);
-
-  return merged;
+  return await fetchToernooienFromCloud();
 }
 
+// Nog niet gebruiken in stap 1
 export async function pushAllToCloud() {
   const items = getToernooien();
 
@@ -103,6 +98,12 @@ function mergeToernooien(local, cloud) {
 
   return [...map.values()];
 }
+
+// Nog niet gebruiken in stap 1
+// export async function syncNow() {
+//   const cloud = await fetchToernooienFromCloud();
+//   return cloud;
+// }
 
 export async function syncNow() {
   const local = getToernooien();
