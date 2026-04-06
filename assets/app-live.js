@@ -17,8 +17,6 @@ import {
   getTournamentById
 } from "./store.js?v=20260406a";
 
-console.log("UI localStorage check:", getToernooien());
-
 import {
   escapeHtml as esc,
   norm,
@@ -28,6 +26,8 @@ import {
   STATUS,
   statusLabel
 } from "./model.js?v=20260405a";
+
+console.log("UI localStorage check:", getToernooien());
 
 // ============================
 // DOM refs
@@ -185,7 +185,7 @@ function downloadBackup() {
     app: "pc-tornooien",
     version: 1,
     exported_at: new Date().toISOString(),
-    tournaments: DATA
+    tournaments: DATA.filter(x => !x.deleted)
   };
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
@@ -268,43 +268,10 @@ function normalizeList(arr) {
       return String(a.id).localeCompare(String(b.id));
     });
 }
+
 function toMs(value) {
   const ms = Date.parse(value || "");
   return Number.isNaN(ms) ? 0 : ms;
-}
-
-function mergeLocalAndCloud(localItems, cloudItems) {
-  const map = new Map();
-
-  for (const item of normalizeList(localItems)) {
-    if (!item.id) continue;
-    map.set(String(item.id), item);
-  }
-
-  for (const cloud of normalizeList(cloudItems)) {
-    if (!cloud.id) continue;
-
-    const key = String(cloud.id);
-    const local = map.get(key);
-
-    if (!local) {
-      map.set(key, cloud);
-      continue;
-    }
-
-    const localMs = toMs(local.updatedAt || local.updated_at);
-    const cloudMs = toMs(cloud.updatedAt || cloud.updated_at);
-
-    if (cloudMs > localMs) {
-      map.set(key, cloud);
-    }
-  }
-
-  return Array.from(map.values()).sort((a, b) => {
-    const d = (a.date_iso || "").localeCompare(b.date_iso || "");
-    if (d !== 0) return d;
-    return String(a.id).localeCompare(String(b.id));
-  });
 }
 
 function mergeLocalAndCloud(localItems, cloudItems) {
@@ -359,6 +326,10 @@ function findLocalNewerThanCloud(localItems, cloudItems) {
 
     return localMs > cloudMs;
   });
+}
+
+function getVisibleData() {
+  return (Array.isArray(DATA) ? DATA : []).filter(x => !x.deleted);
 }
 
 // ============================
@@ -485,16 +456,12 @@ function matchesFilter(item, filterName) {
   switch (filterName) {
     case "Komend":
       return hasValidDate && !isPast && statusCode !== STATUS.PLAYED;
-
     case "Ingeschreven":
       return statusCode === STATUS.REGISTERED;
-
     case "Betaald":
       return statusCode === STATUS.PAID;
-
     case "Gespeeld":
       return isPast || statusCode === STATUS.PLAYED;
-
     default:
       return true;
   }
@@ -560,9 +527,7 @@ function card(item) {
   }
 
   if (item.category) {
-    badges.push(
-      `<span class="badge">${esc(item.category)}</span>`
-    );
+    badges.push(`<span class="badge">${esc(item.category)}</span>`);
   }
 
   const meta = [
@@ -594,9 +559,6 @@ function card(item) {
     </article>
   `;
 }
-function getVisibleData() {
-  return (Array.isArray(DATA) ? DATA : []).filter(x => !x.deleted);
-}  
 
 function render() {
   ensureArrayData();
@@ -612,11 +574,8 @@ function render() {
   renderChips();
 
   const q = (qEl?.value || "").trim();
-  
- const visibleData = getVisibleData();
- const filtered = visibleData.filter(matchesChip).filter(x => matchesQuery(x, q));
- 
-
+  const visibleData = getVisibleData();
+  const filtered = visibleData.filter(matchesChip).filter(x => matchesQuery(x, q));
 
   if (!filtered.length) {
     if (loadError && !DATA.length) {
@@ -647,10 +606,7 @@ function render() {
 
   console.log("Aantal gerenderde kaarten:", filtered.length);
 }
-function toMs(value) {
-  const ms = Date.parse(value || "");
-  return Number.isNaN(ms) ? 0 : ms;
-}
+
 // ============================
 // Data loading / saving
 // ============================
@@ -873,6 +829,7 @@ async function deleteFromModal() {
     alert("Verwijderen mislukt: " + (e?.message || e));
   }
 }
+
 // ============================
 // Export / Import
 // ============================
@@ -1081,7 +1038,6 @@ if (statusField) {
     setSyncStatus("bad", "● init mislukt");
   }
 })();
-
 
 document.addEventListener("visibilitychange", async () => {
   if (document.visibilityState !== "visible") return;
