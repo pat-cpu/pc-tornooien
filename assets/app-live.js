@@ -262,9 +262,9 @@ function normalizeItem(x, i = 0) {
 function normalizeList(arr) {
   return (Array.isArray(arr) ? arr : [])
     .map((x, i) => normalizeItem(x, i))
-    .filter(x => x.date_iso)
+    .filter(x => x.id)
     .sort((a, b) => {
-      const d = a.date_iso.localeCompare(b.date_iso);
+      const d = (a.date_iso || "").localeCompare(b.date_iso || "");
       if (d !== 0) return d;
       return String(a.id).localeCompare(String(b.id));
     });
@@ -503,6 +503,9 @@ function card(item) {
     </article>
   `;
 }
+function getVisibleData() {
+  return (Array.isArray(DATA) ? DATA : []).filter(x => !x.deleted);
+}  
 
 function render() {
   ensureArrayData();
@@ -518,7 +521,11 @@ function render() {
   renderChips();
 
   const q = (qEl?.value || "").trim();
-  const filtered = DATA.filter(matchesChip).filter(x => matchesQuery(x, q));
+  
+ const visibleData = getVisibleData();
+ const filtered = visibleData.filter(matchesChip).filter(x => matchesQuery(x, q));
+ 
+
 
   if (!filtered.length) {
     if (loadError && !DATA.length) {
@@ -532,7 +539,7 @@ function render() {
 
   const today0 = todayMidnight();
 
-  const upcoming = DATA.filter(x => {
+  const upcoming = visibleData.filter(x => {
     const d = new Date(`${x.date_iso || ""}T00:00:00`);
     return !Number.isNaN(d.getTime()) && d >= today0;
   });
@@ -555,23 +562,29 @@ function render() {
 // ============================
 async function loadFromCloudOnStart() {
   try {
-    const arr = await pullFromCloud();
-    console.log("loadFromCloudOnStart raw:", arr);
+    const localItems = normalizeList(getToernooien());
+    const cloudItems = normalizeList(await pullFromCloud());
 
-    const normalized = normalizeList(arr);
-    console.log("loadFromCloudOnStart normalized:", normalized);
+    console.log("loadFromCloudOnStart local:", localItems);
+    console.log("loadFromCloudOnStart cloud:", cloudItems);
 
-    DATA = normalized;
+    const merged = mergeLocalAndCloud(localItems, cloudItems);
+
+    DATA = merged;
     loadError = "";
     render();
 
-    writeCache(normalized);
-    setSyncStatus("ok", "● geladen uit cloud");
+    writeCache(merged);
+    setSyncStatus("ok", "● sync merge ok");
+
+    const dirtyForCloud = findLocalNewerThanCloud(localItems, cloudItems);
+    for (const item of dirtyForCloud) {
+      await saveTournamentToCloud(item);
+    }
   } catch (e) {
     console.error("loadFromCloudOnStart fout:", e);
 
     const cached = normalizeList(getToernooien());
-    console.log("loadFromCloudOnStart cached:", cached);
 
     DATA = cached;
     loadError = e?.message || String(e);
@@ -728,12 +741,12 @@ async function deleteFromModal() {
   if (!removed) return;
 
   try {
-    await deleteTournament(editingId);
+   const deletedLocal = await deleteTournament(editingId);
 
-    const localNow = normalizeList(getToernooien());
-    setData(localNow, { error: "" });
+  const localNow = normalizeList(getToernooien());
+  setData(localNow, { error: "" });
 
-    await deleteTournamentFromCloud(editingId);
+  await saveTournamentToCloud(deletedLocal);
     setSyncStatus("ok", "● verwijderd uit cloud");
 
     closeEdit();
@@ -741,25 +754,24 @@ async function deleteFromModal() {
 
     showToast({
       text: "Tornooi verwijderd.",
-      undoFn: async () => {
-        try {
-          const restored = await addTournament({
-            ...removed,
-            deleted: false
-          });
-
-          const afterUndo = normalizeList(getToernooien());
-          setData(afterUndo, { error: "" });
-
-          await saveTournamentToCloud(restored);
-          setSyncStatus("ok", "● herstel naar cloud opgeslagen");
-        } catch (e) {
-          console.error("undo delete fout:", e);
-          setSyncStatus("bad", "● herstel naar cloud mislukt");
-          alert("Herstel mislukt: " + (e?.message || e));
-        }
-      }
+    undoFn: async () => {
+      try {
+      const restored = await updateTournament(removed.id, {
+        ...removed,
+        deleted: false
     });
+
+    const afterUndo = normalizeList(getToernooien());
+    setData(afterUndo, { error: "" });
+
+    await saveTournamentToCloud(restored);
+    setSyncStatus("ok", "● herstel naar cloud opgeslagen");
+  } catch (e) {
+    console.error("undo delete fout:", e);
+    setSyncStatus("bad", "● herstel naar cloud mislukt");
+    alert("Herstel mislukt: " + (e?.message || e));
+  }
+}
   } catch (e) {
     console.error("deleteFromModal fout:", e);
     setSyncStatus("bad", "● verwijderen in cloud mislukt");

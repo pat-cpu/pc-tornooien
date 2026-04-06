@@ -1,6 +1,10 @@
 import { supabase } from './supabase.js';
 import { getToernooien } from './store.js';
 
+function nowIso() {
+  return new Date().toISOString();
+}
+
 function rowToTournament(row) {
   return {
     id: row.id,
@@ -16,13 +20,12 @@ function rowToTournament(row) {
     played_at: row.played_at ?? '',
     note: row.note ?? '',
     updatedAt: row.updated_at ?? null,
-    updated_at: row.updated_at ?? null,
     deleted: row.deleted ?? false
   };
 }
 
 function tournamentToRow(item) {
-  const timestamp = item.updatedAt ?? item.updated_at ?? new Date().toISOString();
+  const timestamp = item.updatedAt ?? item.updated_at ?? nowIso();
 
   return {
     id: item.id,
@@ -45,8 +48,7 @@ function tournamentToRow(item) {
 export async function fetchToernooienFromCloud() {
   const { data, error } = await supabase
     .from('tournaments')
-    .select('*')
-    .order('date_iso', { ascending: true });
+    .select('*');
 
   if (error) throw error;
 
@@ -58,7 +60,10 @@ export async function pullFromCloud() {
 }
 
 export async function saveTournamentToCloud(item) {
-  const row = tournamentToRow(item);
+  const row = tournamentToRow({
+    ...item,
+    updatedAt: item.updatedAt ?? nowIso()
+  });
 
   const { data, error } = await supabase
     .from('tournaments')
@@ -73,7 +78,9 @@ export async function saveTournamentToCloud(item) {
 
 export async function pushAllToCloud(items = null) {
   const source = Array.isArray(items) ? items : getToernooien();
-  const rows = source.map(tournamentToRow);
+  const rows = source
+    .filter(item => item?.id)
+    .map(tournamentToRow);
 
   if (!rows.length) {
     return [];
@@ -89,15 +96,22 @@ export async function pushAllToCloud(items = null) {
   return (data ?? []).map(rowToTournament);
 }
 
-export async function deleteTournamentFromCloud(id) {
-  const { error } = await supabase
+export async function markTournamentDeletedInCloud(id, updatedAt = nowIso()) {
+  const row = {
+    id,
+    updated_at: updatedAt,
+    deleted: true
+  };
+
+  const { data, error } = await supabase
     .from('tournaments')
-    .delete()
-    .eq('id', id);
+    .upsert([row], { onConflict: 'id' })
+    .select()
+    .single();
 
   if (error) throw error;
 
-  return true;
+  return rowToTournament(data);
 }
 
 export async function clearCloudAll() {

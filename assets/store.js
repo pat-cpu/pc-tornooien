@@ -144,11 +144,12 @@ export async function addTournament(item) {
 
   const timestamp = item?.updatedAt || item?.updated_at || nowIso();
 
-  const withTimestamp = normalizeTournament({
-    ...item,
-    updatedAt: timestamp,
-    updated_at: timestamp
-  });
+const withTimestamp = normalizeTournament({
+  ...item,
+  deleted: false,
+  updatedAt: timestamp,
+  updated_at: timestamp
+});
 
   items.push(withTimestamp);
   setToernooien(items);
@@ -164,12 +165,12 @@ export async function updateTournament(id, nextItem) {
   }
 
   const timestamp = nowIso();
-
-  const withTimestamp = normalizeTournament({
-    ...nextItem,
-    updatedAt: timestamp,
-    updated_at: timestamp
-  });
+const withTimestamp = normalizeTournament({
+  ...nextItem,
+  deleted: Boolean(nextItem?.deleted),
+  updatedAt: timestamp,
+  updated_at: timestamp
+});
 
   items[idx] = withTimestamp;
   setToernooien(items);
@@ -178,6 +179,22 @@ export async function updateTournament(id, nextItem) {
 
 export async function deleteTournament(id) {
   const items = getToernooien();
-  const filtered = items.filter(x => String(x.id) !== String(id));
-  setToernooien(filtered);
+  const idx = items.findIndex(x => String(x.id) === String(id));
+
+  if (idx === -1) {
+    throw new Error("Tornooi niet gevonden");
+  }
+
+  const timestamp = nowIso();
+
+  items[idx] = normalizeTournament({
+    ...items[idx],
+    deleted: true,
+    updatedAt: timestamp,
+    updated_at: timestamp
+  });
+
+  setToernooien(items);
+  return items[idx];
 }
+
