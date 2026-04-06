@@ -1,5 +1,7 @@
-console.log("APP LIVE 20260405b");
+console.log("APP LIVE 20260406a");
+
 import { pullFromCloud } from "./cloud.js?v=20260405a";
+
 import {
   getToernooien,
   loadAll,
@@ -10,9 +12,7 @@ import {
   updateTournament,
   deleteTournament,
   getTournamentById
-} from "./store.js?v=20260405c";
-
-import { syncNow } from "./cloud.js?v=20260405a";
+} from "./store.js?v=20260406a"
 
 console.log("UI localStorage check:", getToernooien());
 
@@ -548,25 +548,25 @@ function render() {
 // ============================
 // Data loading / saving
 // ============================
-async function refreshFromSource() {
+async function loadFromCloudOnStart() {
   try {
-    const arr = await syncNow();
-    console.log("refreshFromSource sync arr:", arr);
+    const arr = await pullFromCloud();
+    console.log("loadFromCloudOnStart raw:", arr);
 
     const normalized = normalizeList(arr);
-    console.log("refreshFromSource normalized:", normalized);
+    console.log("loadFromCloudOnStart normalized:", normalized);
 
     DATA = normalized;
     loadError = "";
     render();
 
     writeCache(normalized);
-    setSyncStatus("ok", "● sync ok");
+    setSyncStatus("ok", "● geladen uit cloud");
   } catch (e) {
-    console.error("refreshFromSource fout:", e);
+    console.error("loadFromCloudOnStart fout:", e);
 
     const cached = normalizeList(getToernooien());
-    console.log("refreshFromSource cached:", cached);
+    console.log("loadFromCloudOnStart cached:", cached);
 
     DATA = cached;
     loadError = e?.message || String(e);
@@ -575,7 +575,7 @@ async function refreshFromSource() {
     if (cached.length) {
       setSyncStatus("bad", "● offline, cache actief");
     } else {
-      setSyncStatus("bad", "● offline");
+      setSyncStatus("bad", "● cloud lezen mislukt");
     }
   }
 }
@@ -587,7 +587,8 @@ async function importAllTournaments(arr) {
     await addTournament(item);
   }
 
-  await refreshFromSource();
+  const localNow = normalizeList(getToernooien());
+  setData(localNow, { error: "" });
 }
 
 function formToItemBase() {
@@ -695,9 +696,9 @@ async function saveFromModal() {
     }
 
     const localNow = normalizeList(getToernooien());
-setData(localNow, { error: "" });
-closeEdit();
-autoBackupAfterSave();
+    setData(localNow, { error: "" });
+    closeEdit();
+    autoBackupAfterSave();
   } catch (e) {
     alert("Opslaan mislukt: " + (e?.message || e));
   }
@@ -711,10 +712,11 @@ async function deleteFromModal() {
 
   try {
     await deleteTournament(editingId);
+
     const localNow = normalizeList(getToernooien());
-setData(localNow, { error: "" });
-closeEdit();
-autoBackupAfterSave();
+    setData(localNow, { error: "" });
+    closeEdit();
+    autoBackupAfterSave();
 
     showToast({
       text: "Tornooi verwijderd.",
@@ -723,7 +725,9 @@ autoBackupAfterSave();
           ...removed,
           deleted: false
         });
-        await refreshFromSource();
+
+        const afterUndo = normalizeList(getToernooien());
+        setData(afterUndo, { error: "" });
       }
     });
   } catch (e) {
@@ -785,7 +789,7 @@ async function applyJSON() {
       throw new Error("Geen lijst gevonden");
     }
 
-    await refreshFromSource();
+    await importAllTournaments(arr);
     closeJSON();
     autoBackupAfterSave();
     alert('Import OK. Tik nu op "Download backup".');
