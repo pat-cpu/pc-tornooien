@@ -496,11 +496,19 @@ function card(item) {
 
 function render() {
   ensureArrayData();
+
   console.log("RENDER DATA:", DATA);
+  console.log("listEl:", listEl);
+
+  if (!listEl) {
+    console.error("listEl niet gevonden");
+    return;
+  }
 
   listEl.innerHTML = DATA.map(card).join("");
-  return;
 
+  console.log("Aantal gerenderde kaarten:", DATA.length);
+}
 
   const q = (qEl?.value || "").trim();
   const filtered = DATA.filter(matchesChip).filter(x => matchesQuery(x, q));
