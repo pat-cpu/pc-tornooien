@@ -913,6 +913,14 @@ if (fStatus?.closest(".field")) {
 
 // init
 (async () => {
-  await loadFromCloudOnStart();
   bindListClicksOnce();
+
+  const cached = normalizeList(getToernooien());
+  if (cached.length) {
+    DATA = cached;
+    render();
+    setSyncStatus("ok", "● cache geladen");
+  }
+
+  await loadFromCloudOnStart();
 })();

@@ -52,6 +52,37 @@ export function getToernooien() {
   const raw = parseJsonSafe(localStorage.getItem(STORAGE_KEY_CACHE) || "[]", []);
   return normalizeTournamentList(raw);
 }
+function mergeById(localItems, remoteItems) {
+  const map = new Map();
+
+  for (const item of normalizeTournamentList(localItems)) {
+    map.set(String(item.id), item);
+  }
+
+  for (const item of normalizeTournamentList(remoteItems)) {
+    map.set(String(item.id), item);
+  }
+
+  return Array.from(map.values());
+}
+
+export function replaceCacheFromCloud(items) {
+  const normalized = normalizeTournamentList(items);
+  setToernooien(normalized);
+  return normalized;
+}
+
+export function mergeCacheFromCloud(items) {
+  const localItems = getToernooien();
+  const merged = mergeById(localItems, items);
+  setToernooien(merged);
+  return merged;
+}
+
+
+
+
+
 
 export function setToernooien(items) {
   localStorage.setItem(
@@ -88,7 +119,22 @@ export async function loadAll() {
 export async function clearAll() {
   setToernooien([]);
 }
+export async function hydrateFromCloud(fetchRemoteFn, options = {}) {
+  const { merge = false } = options;
 
+  if (typeof fetchRemoteFn !== "function") {
+    throw new Error("fetchRemoteFn ontbreekt");
+  }
+
+  const remoteItems = await fetchRemoteFn();
+  const normalized = normalizeTournamentList(remoteItems);
+
+  if (merge) {
+    return mergeCacheFromCloud(normalized);
+  }
+
+  return replaceCacheFromCloud(normalized);
+}
 export async function getTournamentById(id) {
   return getToernooien().find(x => String(x.id) === String(id)) || null;
 }
