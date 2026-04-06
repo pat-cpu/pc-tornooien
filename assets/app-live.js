@@ -505,9 +505,37 @@ function render() {
     return;
   }
 
-  listEl.innerHTML = DATA.map(card).join("");
+  const q = (qEl?.value || "").trim();
+  const filtered = DATA.filter(matchesChip).filter(x => matchesQuery(x, q));
 
-  console.log("Aantal gerenderde kaarten:", DATA.length);
+  if (!filtered.length) {
+    if (loadError && !DATA.length) {
+      listEl.innerHTML = `<div class="empty">Fout bij laden: ${esc(loadError)}</div>`;
+    } else {
+      listEl.innerHTML = `<div class="empty">Geen resultaten.</div>`;
+    }
+  } else {
+    listEl.innerHTML = filtered.map(card).join("");
+  }
+
+  const today0 = todayMidnight();
+
+  const upcoming = DATA.filter(x => {
+    const d = new Date(`${x.date_iso || ""}T00:00:00`);
+    return !Number.isNaN(d.getTime()) && d >= today0;
+  });
+
+  if (statTotal) statTotal.textContent = upcoming.length;
+  if (statVisible) statVisible.textContent = filtered.length;
+  if (statIn) statIn.textContent = "—";
+
+  const next = upcoming
+    .map(x => ({ ...x, d: new Date(`${x.date_iso || ""}T00:00:00`) }))
+    .sort((a, b) => a.d - b.d)[0];
+
+  if (statNext) statNext.textContent = next ? next.date : "—";
+
+  console.log("Aantal gerenderde kaarten:", filtered.length);
 }
 
   const q = (qEl?.value || "").trim();
@@ -521,7 +549,7 @@ function render() {
     }
   } else {
     listEl.innerHTML = filtered.map(card).join("");
-  
+  }
 
   const today0 = todayMidnight();
 
@@ -539,7 +567,7 @@ function render() {
     .sort((a, b) => a.d - b.d)[0];
 
   statNext.textContent = next ? next.date : "—";
-}
+
 
 // ============================
 // Data loading / saving
