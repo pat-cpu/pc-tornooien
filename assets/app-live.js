@@ -25,6 +25,7 @@ import {
   STATUS,
   statusLabel
 } from "./model.js?v=20260405a";
+
 // ============================
 // DOM refs
 // ============================
@@ -94,7 +95,7 @@ const toastCloseBtn = document.getElementById("toastClose");
 // App state
 // ============================
 let DATA = [];
-let activeChip = "Alles";
+let activeChip = "Komend";
 let editingId = null;
 let loadError = "";
 let listClickBound = false;
@@ -225,8 +226,8 @@ function normalizeItem(x, i = 0) {
   const time = norm(x?.time || "");
 
   const status_code = x?.status_code
-  ? String(x.status_code)
-  : statusFromLegacyText(x?.status);
+    ? String(x.status_code)
+    : statusFromLegacyText(x?.status);
 
   const id = String(
     x?.id ||
@@ -268,6 +269,8 @@ function normalizeList(arr) {
 // Dropdown helpers
 // ============================
 function buildSelectOptions(selEl, choices, selectedValue) {
+  if (!selEl) return;
+
   const normalized = Array.from(
     new Set((choices || []).map(s => norm(s)).filter(Boolean))
   );
@@ -295,7 +298,7 @@ function buildSelectOptions(selEl, choices, selectedValue) {
 }
 
 function wireCustomSelectOnce(selEl, wrapEl, inputEl) {
-  if (!selEl || selEl.dataset.wired === "1") return;
+  if (!selEl || !wrapEl || !inputEl || selEl.dataset.wired === "1") return;
 
   selEl.dataset.wired = "1";
 
@@ -325,13 +328,13 @@ function getTeamChoicesFromData() {
 }
 
 function refreshModalSelects() {
-  buildSelectOptions(fClubSel, CLUB_CHOICES, fClub.value);
+  buildSelectOptions(fClubSel, CLUB_CHOICES, fClub?.value || "");
   fClubSel?._syncCustom?.();
 
-  buildSelectOptions(fSpelSel, SPEL_CHOICES, fSpel.value);
+  buildSelectOptions(fSpelSel, SPEL_CHOICES, fSpel?.value || "");
   fSpelSel?._syncCustom?.();
 
-  buildSelectOptions(fTeamSel, getTeamChoicesFromData(), fTeam.value);
+  buildSelectOptions(fTeamSel, getTeamChoicesFromData(), fTeam?.value || "");
   fTeamSel?._syncCustom?.();
 }
 
@@ -426,6 +429,8 @@ function matchesQuery(item, q) {
 // Rendering
 // ============================
 function renderChips() {
+  if (!chipsEl) return;
+
   if (!CHIP_ITEMS.includes(activeChip)) activeChip = "Komend";
 
   chipsEl.innerHTML = CHIP_ITEMS.map(label => {
@@ -505,6 +510,8 @@ function render() {
     return;
   }
 
+  renderChips();
+
   const q = (qEl?.value || "").trim();
   const filtered = DATA.filter(matchesChip).filter(x => matchesQuery(x, q));
 
@@ -537,37 +544,6 @@ function render() {
 
   console.log("Aantal gerenderde kaarten:", filtered.length);
 }
-
-  const q = (qEl?.value || "").trim();
-  const filtered = DATA.filter(matchesChip).filter(x => matchesQuery(x, q));
-
-  if (!filtered.length) {
-    if (loadError && !DATA.length) {
-      listEl.innerHTML = `<div class="empty">Fout bij laden: ${esc(loadError)}</div>`;
-    } else {
-      listEl.innerHTML = `<div class="empty">Geen resultaten.</div>`;
-    }
-  } else {
-    listEl.innerHTML = filtered.map(card).join("");
-  }
-
-  const today0 = todayMidnight();
-
-  const upcoming = DATA.filter(x => {
-    const d = new Date(`${x.date_iso || ""}T00:00:00`);
-    return !Number.isNaN(d.getTime()) && d >= today0;
-  });
-
-  statTotal.textContent = upcoming.length;
-  statVisible.textContent = filtered.length;
-  if (statIn) statIn.textContent = "—";
-
-  const next = upcoming
-    .map(x => ({ ...x, d: new Date(`${x.date_iso || ""}T00:00:00`) }))
-    .sort((a, b) => a.d - b.d)[0];
-
-  statNext.textContent = next ? next.date : "—";
-
 
 // ============================
 // Data loading / saving
@@ -603,6 +579,7 @@ async function refreshFromSource() {
     }
   }
 }
+
 async function importAllTournaments(arr) {
   await clearAll();
 
@@ -616,16 +593,16 @@ async function importAllTournaments(arr) {
 function formToItemBase() {
   return {
     id: editingId || createUuid(),
-    date_iso: fDate.value,
-    date: toDisplayDate(fDate.value),
-    time: fTime.value || "",
-    club: fClub.value || "",
-    spel: fSpel.value || "",
+    date_iso: fDate?.value || "",
+    date: toDisplayDate(fDate?.value || ""),
+    time: fTime?.value || "",
+    club: fClub?.value || "",
+    spel: fSpel?.value || "",
     category: fCategory?.value === "AC" ? "AllCat" : (fCategory?.value || ""),
     rounds: fRounds?.value || "",
     status_code: fStatus?.value || "planned",
-    team: fTeam.value || "",
-    note: fNote.value || ""
+    team: fTeam?.value || "",
+    note: fNote?.value || ""
   };
 }
 
@@ -634,17 +611,17 @@ function formToItemBase() {
 // ============================
 function openAdd() {
   editingId = null;
-  editTitle.textContent = "Tornooi toevoegen";
+  if (editTitle) editTitle.textContent = "Tornooi toevoegen";
 
-  fDate.value = todayLocalISO();
+  if (fDate) fDate.value = todayLocalISO();
   if (fStatus) fStatus.value = "planned";
-  fTime.value = "";
-  fClub.value = "";
-  fSpel.value = "";
-  fTeam.value = "";
+  if (fTime) fTime.value = "";
+  if (fClub) fClub.value = "";
+  if (fSpel) fSpel.value = "";
+  if (fTeam) fTeam.value = "";
   if (fRounds) fRounds.value = "";
   if (fCategory) fCategory.value = "50+";
-  fNote.value = "";
+  if (fNote) fNote.value = "";
 
   refreshModalSelects();
 
@@ -658,14 +635,14 @@ function openEdit(id) {
   if (!item) return;
 
   editingId = item.id;
-  editTitle.textContent = "Tornooi bewerken";
+  if (editTitle) editTitle.textContent = "Tornooi bewerken";
 
-  fDate.value = item.date_iso || "";
+  if (fDate) fDate.value = item.date_iso || "";
   if (fStatus) fStatus.value = item.status_code || "planned";
-  fTime.value = item.time || "";
-  fClub.value = item.club || "";
-  fSpel.value = item.spel || "";
-  fTeam.value = item.team || "";
+  if (fTime) fTime.value = item.time || "";
+  if (fClub) fClub.value = item.club || "";
+  if (fSpel) fSpel.value = item.spel || "";
+  if (fTeam) fTeam.value = item.team || "";
   if (fRounds) fRounds.value = item.rounds || "";
 
   const cat = (item.category || "").trim();
@@ -681,7 +658,7 @@ function openEdit(id) {
     : normalizedCat;
 
   if (fCategory) fCategory.value = finalCat;
-  fNote.value = item.note || "";
+  if (fNote) fNote.value = item.note || "";
 
   refreshModalSelects();
 
@@ -694,7 +671,7 @@ function closeEdit() {
 }
 
 async function saveFromModal() {
-  if (!fDate.value) {
+  if (!fDate?.value) {
     alert("Datum is verplicht.");
     return;
   }
@@ -761,23 +738,25 @@ function openJSON(mode) {
   modalJSON.classList.add("show");
 
   if (mode === "export") {
-    jsonTitle.textContent = "Export (alles)";
-    jsonHint.textContent = "Kopieer dit als backup.";
-    jsonBox.value = JSON.stringify({
-      app: "pc-tornooien",
-      version: 1,
-      exported_at: new Date().toISOString(),
-      tournaments: DATA
-    }, null, 2);
-    btnApplyJSON.style.display = "none";
+    if (jsonTitle) jsonTitle.textContent = "Export (alles)";
+    if (jsonHint) jsonHint.textContent = "Kopieer dit als backup.";
+    if (jsonBox) {
+      jsonBox.value = JSON.stringify({
+        app: "pc-tornooien",
+        version: 1,
+        exported_at: new Date().toISOString(),
+        tournaments: DATA
+      }, null, 2);
+    }
+    if (btnApplyJSON) btnApplyJSON.style.display = "none";
   } else {
-    jsonTitle.textContent = "Import (alles)";
-    jsonHint.textContent = "Plak hier je export. Dit vervangt je lijst.";
-    jsonBox.value = "";
-    btnApplyJSON.style.display = "inline-block";
+    if (jsonTitle) jsonTitle.textContent = "Import (alles)";
+    if (jsonHint) jsonHint.textContent = "Plak hier je export. Dit vervangt je lijst.";
+    if (jsonBox) jsonBox.value = "";
+    if (btnApplyJSON) btnApplyJSON.style.display = "inline-block";
   }
 
-  jsonBox.focus();
+  jsonBox?.focus();
 }
 
 function closeJSON() {
@@ -786,10 +765,10 @@ function closeJSON() {
 
 async function copyJSON() {
   try {
-    await navigator.clipboard.writeText(jsonBox.value || "");
+    await navigator.clipboard.writeText(jsonBox?.value || "");
     alert("Gekopieerd.");
   } catch {
-    jsonBox.select();
+    jsonBox?.select();
     document.execCommand("copy");
     alert("Gekopieerd.");
   }
@@ -797,7 +776,7 @@ async function copyJSON() {
 
 async function applyJSON() {
   try {
-    const payload = JSON.parse(jsonBox.value || "{}");
+    const payload = JSON.parse(jsonBox?.value || "{}");
     const arr = Array.isArray(payload) ? payload : payload.tournaments;
 
     if (!Array.isArray(arr)) {
@@ -834,7 +813,7 @@ async function clearEverything() {
 // Event delegation
 // ============================
 function bindListClicksOnce() {
-  if (listClickBound) return;
+  if (listClickBound || !listEl) return;
   listClickBound = true;
 
   listEl.addEventListener("click", (e) => {
@@ -893,4 +872,5 @@ if (fStatus?.closest(".field")) {
   await refreshFromSource();
   bindListClicksOnce();
 })();
+
 // import "./supabase-test.js";
