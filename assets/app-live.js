@@ -521,7 +521,7 @@ function render() {
     }
   } else {
     listEl.innerHTML = filtered.map(card).join("");
-  }
+  
 
   const today0 = todayMidnight();
 
