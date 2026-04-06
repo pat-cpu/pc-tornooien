@@ -4,7 +4,6 @@ import {
   pullFromCloud,
   saveTournamentToCloud,
   pushAllToCloud,
-  
   clearCloudAll
 } from "./cloud.js?v=20260406b";
 
