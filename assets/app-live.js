@@ -741,12 +741,12 @@ async function deleteFromModal() {
   if (!removed) return;
 
   try {
-   const deletedLocal = await deleteTournament(editingId);
+    const deletedLocal = await deleteTournament(editingId);
 
-  const localNow = normalizeList(getToernooien());
-  setData(localNow, { error: "" });
+    const localNow = normalizeList(getToernooien());
+    setData(localNow, { error: "" });
 
-  await saveTournamentToCloud(deletedLocal);
+    await saveTournamentToCloud(deletedLocal);
     setSyncStatus("ok", "● verwijderd uit cloud");
 
     closeEdit();
@@ -754,34 +754,38 @@ async function deleteFromModal() {
 
     showToast({
       text: "Tornooi verwijderd.",
-    undoFn: async () => {
-      try {
-      const restored = await updateTournament(removed.id, {
-        ...removed,
-        deleted: false
+      undoFn: async () => {
+        try {
+          const restored = await updateTournament(removed.id, {
+            ...removed,
+            deleted: false
+          });
+
+          const afterUndo = normalizeList(getToernooien());
+          setData(afterUndo, { error: "" });
+
+          await saveTournamentToCloud(restored);
+          setSyncStatus("ok", "● herstel naar cloud opgeslagen");
+        } catch (e) {
+          console.error("undo delete fout:", e);
+          setSyncStatus("bad", "● herstel naar cloud mislukt");
+          alert("Herstel mislukt: " + (e?.message || e));
+        }
+      }
     });
-
-    const afterUndo = normalizeList(getToernooien());
-    setData(afterUndo, { error: "" });
-
-    await saveTournamentToCloud(restored);
-    setSyncStatus("ok", "● herstel naar cloud opgeslagen");
-  } catch (e) {
-    console.error("undo delete fout:", e);
-    setSyncStatus("bad", "● herstel naar cloud mislukt");
-    alert("Herstel mislukt: " + (e?.message || e));
-  }
-}
   } catch (e) {
     console.error("deleteFromModal fout:", e);
     setSyncStatus("bad", "● verwijderen in cloud mislukt");
     alert("Verwijderen mislukt: " + (e?.message || e));
   }
 }
-
 // ============================
 // Export / Import
 // ============================
+function getExportData() {
+  return (Array.isArray(DATA) ? DATA : []).filter(x => !x.deleted);
+}
+
 function openJSON(mode) {
   if (!modalJSON) return;
 
@@ -790,14 +794,20 @@ function openJSON(mode) {
   if (mode === "export") {
     if (jsonTitle) jsonTitle.textContent = "Export (alles)";
     if (jsonHint) jsonHint.textContent = "Kopieer dit als backup.";
+
     if (jsonBox) {
-      jsonBox.value = JSON.stringify({
-        app: "pc-tornooien",
-        version: 1,
-        exported_at: new Date().toISOString(),
-        tournaments: DATA
-      }, null, 2);
+      jsonBox.value = JSON.stringify(
+        {
+          app: "pc-tornooien",
+          version: 1,
+          exported_at: new Date().toISOString(),
+          tournaments: getExportData()
+        },
+        null,
+        2
+      );
     }
+
     if (btnApplyJSON) btnApplyJSON.style.display = "none";
   } else {
     if (jsonTitle) jsonTitle.textContent = "Import (alles)";
@@ -814,31 +824,56 @@ function closeJSON() {
 }
 
 async function copyJSON() {
+  const text = jsonBox?.value || "";
+
   try {
-    await navigator.clipboard.writeText(jsonBox?.value || "");
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      jsonBox?.focus();
+      jsonBox?.select();
+      document.execCommand("copy");
+    }
+
     alert("Gekopieerd.");
-  } catch {
-    jsonBox?.select();
-    document.execCommand("copy");
-    alert("Gekopieerd.");
+  } catch (e) {
+    console.error("copyJSON fout:", e);
+
+    try {
+      jsonBox?.focus();
+      jsonBox?.select();
+      document.execCommand("copy");
+      alert("Gekopieerd.");
+    } catch (err) {
+      console.error("Fallback copy mislukt:", err);
+      alert("Kopiëren mislukt.");
+    }
   }
 }
 
 async function applyJSON() {
   try {
-    const payload = JSON.parse(jsonBox?.value || "{}");
-    const arr = Array.isArray(payload) ? payload : payload.tournaments;
+    const raw = jsonBox?.value?.trim() || "";
+    if (!raw) {
+      throw new Error("Geen JSON ingevoerd");
+    }
+
+    const payload = JSON.parse(raw);
+    const arr = Array.isArray(payload) ? payload : payload?.tournaments;
 
     if (!Array.isArray(arr)) {
       throw new Error("Geen lijst gevonden");
     }
 
     await importAllTournaments(arr);
+
     closeJSON();
+    setSyncStatus("ok", "● import naar cloud opgeslagen");
     autoBackupAfterSave();
     alert('Import OK. Tik nu op "Download backup".');
   } catch (e) {
     console.error("applyJSON fout:", e);
+    setSyncStatus("bad", "● import mislukt");
     alert("Import mislukt: " + (e?.message || e));
   }
 }
@@ -851,8 +886,11 @@ async function clearEverything() {
 
   try {
     await clearAll();
-    setData([], { error: "" });
     writeCache([]);
+
+    DATA = [];
+    loadError = "";
+    render();
 
     await clearCloudAll();
 
@@ -873,13 +911,14 @@ function bindListClicksOnce() {
   listClickBound = true;
 
   listEl.addEventListener("click", (e) => {
-    const btn = e.target.closest("button[data-act]");
+    const target = e.target instanceof Element ? e.target : null;
+    const btn = target?.closest("button[data-act]");
     if (!btn) return;
 
     const act = btn.getAttribute("data-act");
     const id = btn.getAttribute("data-id");
 
-    if (act === "edit") {
+    if (act === "edit" && id) {
       openEdit(id);
     }
   });
@@ -919,20 +958,32 @@ wireCustomSelectOnce(fTeamSel, teamCustomWrap, fTeam);
 // Overbodige HTML-elementen voorlopig verbergen
 if (btnClearAll) btnClearAll.style.display = "none";
 if (btnArchive) btnArchive.style.display = "none";
-if (fStatus?.closest(".field")) {
-  fStatus.closest(".field").style.display = "none";
+
+const statusField = fStatus?.closest(".field");
+if (statusField) {
+  statusField.style.display = "none";
 }
 
 // init
 (async () => {
   bindListClicksOnce();
 
-  const cached = normalizeList(getToernooien());
-  if (cached.length) {
-    DATA = cached;
-    render();
-    setSyncStatus("ok", "● cache geladen");
-  }
+  try {
+    const cached = normalizeList(getToernooien());
 
-  await loadFromCloudOnStart();
+    if (cached.length) {
+      DATA = cached;
+      loadError = "";
+      render();
+      setSyncStatus("ok", "● cache geladen");
+    } else {
+      DATA = [];
+      render();
+    }
+
+    await loadFromCloudOnStart();
+  } catch (e) {
+    console.error("init fout:", e);
+    setSyncStatus("bad", "● init mislukt");
+  }
 })();
