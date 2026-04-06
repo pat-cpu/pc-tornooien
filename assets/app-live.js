@@ -1,18 +1,22 @@
-console.log("APP LIVE 20260406a");
+console.log("APP LIVE 20260406b");
 
-import { pullFromCloud } from "./cloud.js?v=20260405a";
+import {
+  pullFromCloud,
+  saveTournamentToCloud,
+  pushAllToCloud,
+  deleteTournamentFromCloud,
+  clearCloudAll
+} from "./cloud.js?v=20260406b";
 
 import {
   getToernooien,
-  loadAll,
   clearAll,
-  readCache,
   writeCache,
   addTournament,
   updateTournament,
   deleteTournament,
   getTournamentById
-} from "./store.js?v=20260406a"
+} from "./store.js?v=20260406a";
 
 console.log("UI localStorage check:", getToernooien());
 
@@ -250,6 +254,7 @@ function normalizeItem(x, i = 0) {
     note: norm(x?.note || x?.notities || ""),
     created_at: x?.created_at || "",
     updated_at: x?.updated_at || x?.updatedAt || "",
+    updatedAt: x?.updatedAt || x?.updated_at || "",
     deleted: Boolean(x?.deleted)
   };
 }
@@ -582,6 +587,7 @@ async function loadFromCloudOnStart() {
 
 async function importAllTournaments(arr) {
   await clearAll();
+  await clearCloudAll();
 
   for (const item of normalizeList(arr)) {
     await addTournament(item);
@@ -589,6 +595,9 @@ async function importAllTournaments(arr) {
 
   const localNow = normalizeList(getToernooien());
   setData(localNow, { error: "" });
+
+  await pushAllToCloud(localNow);
+  setSyncStatus("ok", "● import naar cloud opgeslagen");
 }
 
 function formToItemBase() {
@@ -680,6 +689,8 @@ async function saveFromModal() {
   const item = normalizeItem(formToItemBase(), Date.now());
 
   try {
+    let savedLocal;
+
     if (editingId) {
       const existing = await getTournamentById(editingId);
 
@@ -687,19 +698,25 @@ async function saveFromModal() {
         throw new Error("Bestaand tornooi niet gevonden.");
       }
 
-      await updateTournament(editingId, {
+      savedLocal = await updateTournament(editingId, {
         ...existing,
         ...item
       });
     } else {
-      await addTournament(item);
+      savedLocal = await addTournament(item);
     }
 
     const localNow = normalizeList(getToernooien());
     setData(localNow, { error: "" });
+
+    await saveTournamentToCloud(savedLocal);
+    setSyncStatus("ok", "● cloud opgeslagen");
+
     closeEdit();
     autoBackupAfterSave();
   } catch (e) {
+    console.error("saveFromModal fout:", e);
+    setSyncStatus("bad", "● cloud opslaan mislukt");
     alert("Opslaan mislukt: " + (e?.message || e));
   }
 }
@@ -715,22 +732,37 @@ async function deleteFromModal() {
 
     const localNow = normalizeList(getToernooien());
     setData(localNow, { error: "" });
+
+    await deleteTournamentFromCloud(editingId);
+    setSyncStatus("ok", "● verwijderd uit cloud");
+
     closeEdit();
     autoBackupAfterSave();
 
     showToast({
       text: "Tornooi verwijderd.",
       undoFn: async () => {
-        await addTournament({
-          ...removed,
-          deleted: false
-        });
+        try {
+          const restored = await addTournament({
+            ...removed,
+            deleted: false
+          });
 
-        const afterUndo = normalizeList(getToernooien());
-        setData(afterUndo, { error: "" });
+          const afterUndo = normalizeList(getToernooien());
+          setData(afterUndo, { error: "" });
+
+          await saveTournamentToCloud(restored);
+          setSyncStatus("ok", "● herstel naar cloud opgeslagen");
+        } catch (e) {
+          console.error("undo delete fout:", e);
+          setSyncStatus("bad", "● herstel naar cloud mislukt");
+          alert("Herstel mislukt: " + (e?.message || e));
+        }
       }
     });
   } catch (e) {
+    console.error("deleteFromModal fout:", e);
+    setSyncStatus("bad", "● verwijderen in cloud mislukt");
     alert("Verwijderen mislukt: " + (e?.message || e));
   }
 }
@@ -794,6 +826,7 @@ async function applyJSON() {
     autoBackupAfterSave();
     alert('Import OK. Tik nu op "Download backup".');
   } catch (e) {
+    console.error("applyJSON fout:", e);
     alert("Import mislukt: " + (e?.message || e));
   }
 }
@@ -808,9 +841,14 @@ async function clearEverything() {
     await clearAll();
     setData([], { error: "" });
     writeCache([]);
-    setSyncStatus("ok", "● lokaal leeggemaakt");
+
+    await clearCloudAll();
+
+    setSyncStatus("ok", "● lokaal + cloud leeggemaakt");
     showToast({ text: "Alles gewist." });
   } catch (e) {
+    console.error("clearEverything fout:", e);
+    setSyncStatus("bad", "● cloud leegmaken mislukt");
     alert("Wissen mislukt: " + (e?.message || e));
   }
 }
@@ -878,5 +916,3 @@ if (fStatus?.closest(".field")) {
   await loadFromCloudOnStart();
   bindListClicksOnce();
 })();
-
-// import "./supabase-test.js";
