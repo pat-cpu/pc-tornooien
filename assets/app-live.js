@@ -987,3 +987,14 @@ if (statusField) {
     setSyncStatus("bad", "● init mislukt");
   }
 })();
+
+
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState !== "visible") return;
+
+  try {
+    await loadFromCloudOnStart();
+  } catch (e) {
+    console.error("visibility sync fout:", e);
+  }
+});
