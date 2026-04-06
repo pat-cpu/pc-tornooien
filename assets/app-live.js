@@ -268,6 +268,65 @@ function normalizeList(arr) {
       return String(a.id).localeCompare(String(b.id));
     });
 }
+function toMs(value) {
+  const ms = Date.parse(value || "");
+  return Number.isNaN(ms) ? 0 : ms;
+}
+
+function mergeLocalAndCloud(localItems, cloudItems) {
+  const map = new Map();
+
+  for (const item of normalizeList(localItems)) {
+    if (!item.id) continue;
+    map.set(String(item.id), item);
+  }
+
+  for (const cloud of normalizeList(cloudItems)) {
+    if (!cloud.id) continue;
+
+    const key = String(cloud.id);
+    const local = map.get(key);
+
+    if (!local) {
+      map.set(key, cloud);
+      continue;
+    }
+
+    const localMs = toMs(local.updatedAt || local.updated_at);
+    const cloudMs = toMs(cloud.updatedAt || cloud.updated_at);
+
+    if (cloudMs > localMs) {
+      map.set(key, cloud);
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) => {
+    const d = (a.date_iso || "").localeCompare(b.date_iso || "");
+    if (d !== 0) return d;
+    return String(a.id).localeCompare(String(b.id));
+  });
+}
+
+function findLocalNewerThanCloud(localItems, cloudItems) {
+  const cloudMap = new Map(
+    normalizeList(cloudItems)
+      .filter(x => x.id)
+      .map(x => [String(x.id), x])
+  );
+
+  return normalizeList(localItems).filter(local => {
+    if (!local.id) return false;
+
+    const cloud = cloudMap.get(String(local.id));
+    if (!cloud) return true;
+
+    const localMs = toMs(local.updatedAt || local.updated_at);
+    const cloudMs = toMs(cloud.updatedAt || cloud.updated_at);
+
+    return localMs > cloudMs;
+  });
+}
+
 
 // ============================
 // Dropdown helpers
