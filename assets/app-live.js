@@ -76,7 +76,7 @@ const teamCustomWrap = document.getElementById("teamCustomWrap");
 const fRounds = document.getElementById("fRounds");
 const fCategory = document.getElementById("fCategory");
 const fNote = document.getElementById("fNote");
-
+const fCircuit = document.getElementById("fCircuit");
 const syncStatusEl = document.getElementById("syncStatus");
 
 // Export/Import modal
@@ -102,22 +102,42 @@ let activeChip = "Komend";
 let editingId = null;
 let loadError = "";
 let listClickBound = false;
+let activeCircuit = "pc";
 
 const CHIP_ITEMS = ["Komend", "Alles"];
 
-const CLUB_CHOICES = [
-  "PC Mistral",
-  "PC Schorpioen",
-  "PC Verbroedering",
-  "PC Haeseveld",
-  "PC Reinaert",
-  "PC Donkmeer",
-  "PC Alosta",
-  "PC LOBOS",
-  "KPC Mistral",
-  "KPC Schorpioen",
-  "PC Singel, Grimbergen"
-];
+const CLUB_CHOICES_BY_CIRCUIT = {
+  pc: [
+    "PC Mistral",
+    "PC Schorpioen",
+    "PC Verbroedering",
+    "PC Haeseveld",
+    "PC Reinaert",
+    "PC Donkmeer",
+    "PC Alosta",
+    "PC LOBOS",
+    "KPC Mistral",
+    "KPC Schorpioen",
+    "PC Singel, Grimbergen"
+  ],
+
+  zomer_oost: [
+    "PC Mistral",
+    "PC Schorpioen",
+    "PC Verbroedering"
+  ],
+
+  zomer_west: [
+    "PC Brugge",
+    "PC Oostende",
+    "PC Kortrijk"
+  ],
+
+  winter: [
+    "PC Winterclub 1",
+    "PC Winterclub 2"
+  ]
+};
 
 const SPEL_CHOICES = [
   "Doublet gemengd",
@@ -175,6 +195,16 @@ function setSyncStatus(state, text) {
   if (state === "ok") syncStatusEl.classList.add("ok");
   if (state === "bad") syncStatusEl.classList.add("bad");
   syncStatusEl.textContent = text;
+}
+
+function getCircuitColor(circuit) {
+  switch (circuit) {
+    case "pc": return "#3b82f6";        // blauw
+    case "zomer_oost": return "#16a34a"; // groen
+    case "zomer_west": return "#f97316"; // oranje
+    case "winter": return "#444";        // donker
+    default: return "#999";
+  }
 }
 
 // ===========================
@@ -246,6 +276,7 @@ function normalizeItem(x, i = 0) {
     spel,
     time,
     category: norm(x?.category || x?.categorie || ""),
+    circuit: norm(x?.circuit || "pc"),
     rounds: norm(x?.rounds || ""),
     team: norm(x?.team || ""),
     status_code,
@@ -395,7 +426,10 @@ function getTeamChoicesFromData() {
 }
 
 function refreshModalSelects() {
-  buildSelectOptions(fClubSel, CLUB_CHOICES, fClub?.value || "");
+  const circuit = fCircuit?.value || "pc";
+  const clubChoices = CLUB_CHOICES_BY_CIRCUIT[circuit] || [];
+
+  buildSelectOptions(fClubSel, clubChoices, fClub?.value || "");
   fClubSel?._syncCustom?.();
 
   buildSelectOptions(fSpelSel, SPEL_CHOICES, fSpel?.value || "");
@@ -545,7 +579,7 @@ function card(item) {
   const note = item.note ? `<div class="note">${esc(item.note)}</div>` : "";
 
   return `
-    <article class="card">
+    <article class="card" style="border-left: 6px solid ${getCircuitColor(item.circuit)}">
       <div class="row">
         <div>
           <div class="date">${esc(item.date)}</div>
@@ -560,6 +594,66 @@ function card(item) {
   `;
 }
 
+const CIRCUIT_LABELS = {
+  pc: "PC Tornooien",
+  zomer_oost: "Zomer Circuit Oost-Vlaanderen",
+  zomer_west: "Zomer Circuit West-Vlaanderen",
+  winter: "Wintercompetities"
+};
+
+const CIRCUIT_ORDER = ["pc", "zomer_oost", "zomer_west", "winter"];
+
+function renderGroupedCards(items) {
+  return CIRCUIT_ORDER.map(circuit => {
+    const group = items
+      .filter(x => (x.circuit || "pc") === circuit)
+      .sort((a, b) => (a.date_iso || "").localeCompare(b.date_iso || ""));
+
+    if (!group.length) return "";
+
+    return `
+      <section class="circuitGroup">
+        <h2 class="circuitTitle">${esc(CIRCUIT_LABELS[circuit])}</h2>
+        ${group.map(card).join("")}
+      </section>
+    `;
+  }).join("");
+}
+
+function renderCircuitTabs() {
+  const visibleData = getVisibleData().filter(matchesChip);
+
+  const countFor = (key) => {
+    if (key === "alles") return visibleData.length;
+    return visibleData.filter(x => (x.circuit || "pc") === key).length;
+  };
+
+  const tabs = [
+    { key: "alles", label: "Alles" },
+    { key: "pc", label: "PC" },
+    { key: "zomer_oost", label: "Zomer Oost" },
+    { key: "zomer_west", label: "Zomer West" },
+    { key: "winter", label: "Winter" }
+  ];
+
+  const container = document.getElementById("circuitTabs");
+  if (!container) return;
+
+  container.innerHTML = tabs.map(t => {
+    const cls = t.key === activeCircuit ? "chip active" : "chip";
+    return `<button class="${cls}" data-circuit="${t.key}">
+      ${esc(t.label)} (${countFor(t.key)})
+    </button>`;
+  }).join("");
+
+  container.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeCircuit = btn.getAttribute("data-circuit");
+      render();
+    });
+  });
+}
+
 function render() {
   ensureArrayData();
 
@@ -572,10 +666,17 @@ function render() {
   }
 
   renderChips();
+  renderCircuitTabs();
 
   const q = (qEl?.value || "").trim();
   const visibleData = getVisibleData();
-  const filtered = visibleData.filter(matchesChip).filter(x => matchesQuery(x, q));
+  const filtered = visibleData
+  .filter(matchesChip)
+  .filter(x => matchesQuery(x, q))
+  .filter(x => {
+    if (activeCircuit === "alles") return true;
+    return (x.circuit || "pc") === activeCircuit;
+  });
 
   if (!filtered.length) {
     if (loadError && !DATA.length) {
@@ -584,7 +685,7 @@ function render() {
       listEl.innerHTML = `<div class="empty">Geen resultaten.</div>`;
     }
   } else {
-    listEl.innerHTML = filtered.map(card).join("");
+    listEl.innerHTML = renderGroupedCards(filtered);
   }
 
   const today0 = todayMidnight();
@@ -664,19 +765,20 @@ async function importAllTournaments(arr) {
 }
 
 function formToItemBase() {
-  return {
-    id: editingId || createUuid(),
-    date_iso: fDate?.value || "",
-    date: toDisplayDate(fDate?.value || ""),
-    time: fTime?.value || "",
-    club: fClub?.value || "",
-    spel: fSpel?.value || "",
-    category: fCategory?.value === "AC" ? "AllCat" : (fCategory?.value || ""),
-    rounds: fRounds?.value || "",
-    status_code: fStatus?.value || "planned",
-    team: fTeam?.value || "",
-    note: fNote?.value || ""
-  };
+return {
+  id: editingId || createUuid(),
+  date_iso: fDate?.value || "",
+  date: toDisplayDate(fDate?.value || ""),
+  time: fTime?.value || "",
+  club: fClub?.value || "",
+  spel: fSpel?.value || "",
+  category: fCategory?.value === "AC" ? "AllCat" : (fCategory?.value || ""),
+  circuit: fCircuit?.value || "pc",
+  rounds: fRounds?.value || "",
+  status_code: fStatus?.value || "planned",
+  team: fTeam?.value || "",
+  note: fNote?.value || ""
+};
 }
 
 // ============================
@@ -694,6 +796,7 @@ function openAdd() {
   if (fTeam) fTeam.value = "";
   if (fRounds) fRounds.value = "";
   if (fCategory) fCategory.value = "50+";
+  if (fCircuit) fCircuit.value = "pc";
   if (fNote) fNote.value = "";
 
   refreshModalSelects();
@@ -717,6 +820,7 @@ function openEdit(id) {
   if (fSpel) fSpel.value = item.spel || "";
   if (fTeam) fTeam.value = item.team || "";
   if (fRounds) fRounds.value = item.rounds || "";
+  if (fCircuit) fCircuit.value = item.circuit || "pc";
 
   const cat = (item.category || "").trim();
   const normalizedCat =
@@ -1005,6 +1109,15 @@ modalJSON?.addEventListener("click", (e) => {
 wireCustomSelectOnce(fClubSel, clubCustomWrap, fClub);
 wireCustomSelectOnce(fSpelSel, spelCustomWrap, fSpel);
 wireCustomSelectOnce(fTeamSel, teamCustomWrap, fTeam);
+
+fCircuit?.addEventListener("change", () => {
+  refreshModalSelects();
+});
+
+
+
+
+
 
 // Overbodige HTML-elementen voorlopig verbergen
 if (btnClearAll) btnClearAll.style.display = "none";

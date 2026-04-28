@@ -82,7 +82,10 @@
   </header>
 
   <main class="wrap">
-    <div class="list" id="list"></div>
+
+  <div id="circuitTabs" class="chips"></div>
+
+  <div class="list" id="list"></div>
 
     <!-- Footer -->
     <div class="footer">
@@ -153,20 +156,30 @@
         </div>
 
         <div class="grid2">
-          <div>
-            <label>Ronden</label>
-            <input type="text" id="fRounds">
-          </div>
-          <div>
-            <label>Categorie</label>
-            <select id="fCategory">
-              <option value="">(leeg)</option>
-              <option value="50+">50+</option>
-              <option value="AllCat">AllCat</option>
-            </select>
-          </div>
-        </div>
+  <div>
+    <label>Ronden</label>
+    <input type="text" id="fRounds">
+  </div>
 
+  <div>
+    <label>Categorie</label>
+    <select id="fCategory">
+      <option value="">(leeg)</option>
+      <option value="50+">50+</option>
+      <option value="AllCat">AllCat</option>
+    </select>
+  </div>
+
+  <div>
+    <label>Circuit</label>
+    <select id="fCircuit">
+      <option value="pc">PC</option>
+      <option value="zomer_oost">Zomer Oost-Vlaanderen</option>
+      <option value="zomer_west">Zomer West-Vlaanderen</option>
+      <option value="winter">Wintercompetities</option>
+    </select>
+  </div>
+</div>
         <div>
           <label>Notitie</label>
           <textarea id="fNote"></textarea>
