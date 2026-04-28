@@ -102,7 +102,7 @@ let activeChip = "Komend";
 let editingId = null;
 let loadError = "";
 let listClickBound = false;
-let activeCircuit = "pc";
+let activeCircuit = localStorage.getItem("activeCircuit") || "pc";
 
 const CHIP_ITEMS = ["Komend", "Alles"];
 
@@ -176,6 +176,21 @@ function createUuid() {
   }
   return `id-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
+
+function getCircuitLabel(circuit) {
+  switch (circuit) {
+    case "pc": return "PC";
+    case "zomer_oost": return "Zomer Oost";
+    case "zomer_west": return "Zomer West";
+    case "winter": return "Winter";
+    default: return "";
+  }
+}
+
+
+
+
+
 
 function todayLocalISO() {
   const now = new Date();
@@ -649,6 +664,7 @@ function renderCircuitTabs() {
   container.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
       activeCircuit = btn.getAttribute("data-circuit");
+      localStorage.setItem("activeCircuit", activeCircuit);
       render();
     });
   });
