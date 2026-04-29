@@ -43,17 +43,10 @@ python -m pip install flask-cors
 
 
 
-pushen
-
-
-
-
-
+git status
 git add .
-git commit -m "update"
-git push origin main
-
-
+git commit -m "Herstel importknop"
+git push
 
 
 
