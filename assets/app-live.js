@@ -1102,7 +1102,7 @@ qEl?.addEventListener("input", render);
 
 btnAdd?.addEventListener("click", openAdd);
 btnExport?.addEventListener("click", () => openJSON("export"));
-
+btnImport?.addEventListener("click", () => openJSON("import"));
 btnReset?.addEventListener("click", clearEverything);
 btnDownload?.addEventListener("click", downloadBackup);
 
