@@ -104,7 +104,7 @@ let loadError = "";
 let listClickBound = false;
 let activeCircuit = localStorage.getItem("activeCircuit") || "pc";
 
-const CHIP_ITEMS = ["Komend", "Alles"];
+const CHIP_ITEMS = ["Komend", "Gespeeld"];
 
 const CLUB_CHOICES_BY_CIRCUIT = {
   pc: [
@@ -546,9 +546,16 @@ function renderChips() {
   if (!CHIP_ITEMS.includes(activeChip)) activeChip = "Komend";
 
   chipsEl.innerHTML = CHIP_ITEMS.map(label => {
-    const cls = label === activeChip ? "chip active" : "chip";
-    return `<button class="${cls}" data-chip="${esc(label)}">${esc(label)}</button>`;
-  }).join("");
+  let cls = "chip";
+  const key = label.trim().toLowerCase();
+
+  if (key === "komend") cls += " chip-komend";
+  if (key === "gespeeld") cls += " chip-gespeeld";
+
+  if (label === activeChip) cls += " active";
+
+  return `<button class="${cls}" data-chip="${esc(label)}">${esc(label)}</button>`;
+}).join("");
 
   chipsEl.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -636,15 +643,20 @@ function renderGroupedCards(items) {
 }
 
 function renderCircuitTabs() {
-  const visibleData = getVisibleData().filter(matchesChip);
+  const baseData = getVisibleData();
+
+  const upcomingData = baseData.filter(item => matchesFilter(item, "Komend"));
 
   const countFor = (key) => {
-    if (key === "alles") return visibleData.length;
-    return visibleData.filter(x => (x.circuit || "pc") === key).length;
+    if (key === "alles") {
+      return baseData.filter(matchesChip).length;
+    }
+
+    return upcomingData.filter(x => (x.circuit || "pc") === key).length;
   };
 
   const tabs = [
-    { key: "alles", label: "Alles" },
+    { key: "alles", label: "Alle circuits" },
     { key: "pc", label: "PC" },
     { key: "zomer_oost", label: "Zomer Oost" },
     { key: "zomer_west", label: "Zomer West" },
@@ -687,12 +699,12 @@ function render() {
   const q = (qEl?.value || "").trim();
   const visibleData = getVisibleData();
   const filtered = visibleData
-  .filter(matchesChip)
-  .filter(x => matchesQuery(x, q))
-  .filter(x => {
-    if (activeCircuit === "alles") return true;
-    return (x.circuit || "pc") === activeCircuit;
-  });
+    .filter(matchesChip)
+    .filter(x => matchesQuery(x, q))
+    .filter(x => {
+      if (activeCircuit === "alles") return true;
+      return (x.circuit || "pc") === activeCircuit;
+    });
 
   if (!filtered.length) {
     if (loadError && !DATA.length) {
@@ -781,20 +793,20 @@ async function importAllTournaments(arr) {
 }
 
 function formToItemBase() {
-return {
-  id: editingId || createUuid(),
-  date_iso: fDate?.value || "",
-  date: toDisplayDate(fDate?.value || ""),
-  time: fTime?.value || "",
-  club: fClub?.value || "",
-  spel: fSpel?.value || "",
-  category: fCategory?.value === "AC" ? "AllCat" : (fCategory?.value || ""),
-  circuit: fCircuit?.value || "pc",
-  rounds: fRounds?.value || "",
-  status_code: fStatus?.value || "planned",
-  team: fTeam?.value || "",
-  note: fNote?.value || ""
-};
+  return {
+    id: editingId || createUuid(),
+    date_iso: fDate?.value || "",
+    date: toDisplayDate(fDate?.value || ""),
+    time: fTime?.value || "",
+    club: fClub?.value || "",
+    spel: fSpel?.value || "",
+    category: fCategory?.value === "AC" ? "AllCat" : (fCategory?.value || ""),
+    circuit: fCircuit?.value || "pc",
+    rounds: fRounds?.value || "",
+    status_code: fStatus?.value || "planned",
+    team: fTeam?.value || "",
+    note: fNote?.value || ""
+  };
 }
 
 // ============================
@@ -841,8 +853,8 @@ function openEdit(id) {
   const cat = (item.category || "").trim();
   const normalizedCat =
     cat === "AC" ||
-    cat.toLowerCase() === "all categorieen" ||
-    cat.toLowerCase() === "alle categorieen"
+      cat.toLowerCase() === "all categorieen" ||
+      cat.toLowerCase() === "alle categorieen"
       ? "AllCat"
       : cat;
 
@@ -1029,11 +1041,53 @@ async function applyJSON() {
       throw new Error("Geen JSON ingevoerd");
     }
 
-    const payload = JSON.parse(raw);
-    const arr = Array.isArray(payload) ? payload : payload?.tournaments;
+    let arr;
+
+    if (raw.includes(";") && raw.includes("\n")) {
+      const regels = raw.split(/\r?\n/).filter(r => r.trim());
+      const headers = regels[0].split(";").map(h => h.trim());
+
+      arr = regels.slice(1).map(regel => {
+        const waarden = regel.split(";").map(v => v.trim());
+        const obj = {};
+
+        headers.forEach((h, i) => {
+          obj[h] = waarden[i] || "";
+        });
+
+        return obj;
+      });
+
+    } else {
+      const payload = JSON.parse(raw);
+      arr = Array.isArray(payload) ? payload : payload?.tournaments;
+    }
 
     if (!Array.isArray(arr)) {
       throw new Error("Geen lijst gevonden");
+    }
+
+    if (!Array.isArray(arr)) {
+      throw new Error("Geen lijst gevonden");
+    }
+
+    const voorbeeld = arr
+      .slice(0, 20)
+      .map(t => `${t.date || t.datum || "?"} - ${t.club || "?"} - ${t.name || t.naam || "?"} - ${t.circuit || "?"}`)
+      .join("\n");
+
+    const extra = arr.length > 20
+      ? `\n\n... en nog ${arr.length - 20} extra tornooien`
+      : "";
+
+    const akkoord = confirm(
+      `Je staat op het punt ${arr.length} tornooi(en) te importeren:\n\n${voorbeeld}${extra}\n\nWil je deze echt toevoegen?`
+    );
+
+    if (!akkoord) {
+      setSyncStatus("bad", "● import geannuleerd");
+      alert("Import geannuleerd. Er is niets toegevoegd.");
+      return;
     }
 
     await importAllTournaments(arr);
@@ -1042,18 +1096,25 @@ async function applyJSON() {
     setSyncStatus("ok", "● import naar cloud opgeslagen");
     autoBackupAfterSave();
     alert('Import OK. Tik nu op "Download backup".');
+
   } catch (e) {
     console.error("applyJSON fout:", e);
     setSyncStatus("bad", "● import mislukt");
     alert("Import mislukt: " + (e?.message || e));
   }
 }
-
 // ============================
 // Clear
 // ============================
 async function clearEverything() {
-  if (!confirm("Alles leegmaken. Doorgaan?")) return;
+  const code = prompt('Typ RESET om alles te wissen:');
+
+if (code !== "RESET") {
+  alert("Reset geannuleerd. Er is niets gewist.");
+  return;
+}
+
+if (!confirm("⚠️ Zeker? Alles wordt lokaal én in de cloud gewist.")) return;
 
   try {
     await clearAll();

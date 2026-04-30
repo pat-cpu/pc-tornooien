@@ -257,7 +257,57 @@ textarea{ min-height: 90px; resize: vertical; }
 #syncStatus.bad{ color: rgba(220,38,38,0.95); }
 
 
+.chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+  cursor: pointer;
+  margin-right: 6px;
+}
+
+/* actieve chip */
+.chip.active {
+  border: 2px solid #000;
+}
+
+/* KOMEND */
+.chip-komend {
+  background: #e6f4ea;
+  color: #1e7e34;
+  border-color: #1e7e34;
+}
+
+/* GESPEELD */
+.chip-gespeeld {
+  background: #eeeeee;
+  color: #666;
+  border-color: #999;
+}
 
 
+button.chip.chip-komend {
+  background: #e6f4ea !important;
+  color: #1e7e34 !important;
+  border: 2px solid #1e7e34 !important;
+}
 
+button.chip.chip-gespeeld {
+  background: #eeeeee !important;
+  color: #666 !important;
+  border: 2px solid #999 !important;
+}
 
+/* ONDERSTE KNOPPEN (circuits) */
+#circuitTabs .chip {
+  background: #2b2f3a;
+  color: #ddd;
+  border: 1px solid #555;
+}
+
+/* actieve circuit knop */
+#circuitTabs .chip.active {
+  background: #5969B8;
+  color: #fff;
+  border: 2px solid #8fa0ff;
+}

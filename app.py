@@ -65,6 +65,21 @@ def normalize_tournament(item):
     item.setdefault("type", "pc")
     return item
 
+def laad_bestaande_tornooien():
+    if not DATA_FILE.exists():
+        return []
+
+    with open(DATA_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if isinstance(data, list):
+        return data
+
+    if isinstance(data, dict):
+        return data.get("tornooien", [])
+
+    return []
+
 # ============================
 # API
 # ============================
@@ -121,6 +136,87 @@ def static_proxy(path):
     # fallback alleen voor echte pagina's, NIET voor assets
     return send_from_directory(APP_DIR, "index.html")
 
+# ============================
+#import
+# ============================
+import csv
+
+DEFAULTS = {
+    "Zomer Oost": {
+        "team": "Annie Patrick",
+        "uur": "14:30",
+        "ronden": 3
+    },
+    "Zomer West": {
+        "team": "Annie Patrick",
+        "uur": "14:00",
+        "ronden": 3
+    },
+    "Winter": {
+        "team": "Patrick, Annie, Gregory",
+        "uur": "14:30",
+        "ronden": 3
+    }
+}
+def proper(value):
+    if value is None:
+        return ""
+    return str(value).strip()
+
+@app.route("/api/import_csv", methods=["POST"])
+def import_csv():
+    file = request.files.get("file")
+
+    if not file:
+        return jsonify({"error": "Geen bestand"}), 400
+
+    decoded = file.read().decode("utf-8-sig").splitlines()
+    reader = csv.DictReader(decoded, delimiter=";")
+
+    resultaat = []
+
+    for row in reader:
+        circuit = proper(row.get("circuit"))
+        defaults = DEFAULTS.get(circuit, {})
+
+        tornooi = {
+            "datum": proper(row.get("datum")),
+            "club": proper(row.get("club")),
+            "spel": proper(row.get("spel")),
+            "circuit": circuit,
+            "team": defaults.get("team"),
+            "uur": defaults.get("uur"),
+            "ronden": defaults.get("ronden")
+        }
+
+        resultaat.append(tornooi)
+
+    bestaande = laad_bestaande_tornooien()
+
+    bestaande_sleutels = set()
+    for t in bestaande:
+        sleutel = (
+            proper(t.get("datum")),
+            proper(t.get("club")).lower(),
+            proper(t.get("spel")).lower(),
+            proper(t.get("circuit")).lower()
+        )
+        bestaande_sleutels.add(sleutel)
+
+    preview = []
+
+    for tornooi in resultaat:
+        sleutel = (
+            proper(tornooi.get("datum")),
+            proper(tornooi.get("club")).lower(),
+            proper(tornooi.get("spel")).lower(),
+            proper(tornooi.get("circuit")).lower()
+        )
+
+        tornooi["dubbel"] = sleutel in bestaande_sleutels
+        preview.append(tornooi)
+
+    return jsonify(preview)
 # ============================
 # Run lokaal
 # ============================
