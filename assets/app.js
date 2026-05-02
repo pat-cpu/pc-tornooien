@@ -1304,10 +1304,10 @@ async function handleCSV(event) {
 
     const localNow = normalizeList(getToernooien());
     setData(localNow, { error: "" });
-    render();
+   
 
     alert(`${aantal} tornooien geïmporteerd 👍`);
   };
 
-  reader.readAsText(file);
+  
 }
