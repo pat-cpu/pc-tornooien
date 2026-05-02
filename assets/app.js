@@ -1313,7 +1313,7 @@ const spelNaam = spel || "petanque";
       !t.deleted &&
         t.date_iso === isoDatum &&
         t.club === club &&
-        t.spel === spel
+        t.spel === spelNaam
       );
 
       if (bestaat) {
