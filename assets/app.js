@@ -1258,7 +1258,7 @@ async function handleCSV(event) {
 
   const reader = new FileReader();
 
-  reader.onload = async function(e) {
+  reader.onload = function(e) {
     const text = e.target.result.trim();
     const lines = text.split(/\r?\n/).filter(Boolean);
 
