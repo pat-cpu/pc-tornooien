@@ -1063,14 +1063,11 @@ async function applyJSON() {
       arr = Array.isArray(payload) ? payload : payload?.tournaments;
     }
 
-    if (!Array.isArray(arr)) {
+        if (!Array.isArray(arr)) {
       throw new Error("Geen lijst gevonden");
     }
 
-    if (!Array.isArray(arr)) {
-      throw new Error("Geen lijst gevonden");
-    }
-
+      
     const voorbeeld = arr
       .slice(0, 20)
       .map(t => `${t.date || t.datum || "?"} - ${t.club || "?"} - ${t.name || t.naam || "?"} - ${t.circuit || "?"}`)
@@ -1252,13 +1249,32 @@ function mapCircuit(value) {
   return "pc";
 }
 
+function csvDateToIso(value) {
+  const v = String(value || "").trim();
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+
+  const m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) {
+    const dag = m[1].padStart(2, "0");
+    const maand = m[2].padStart(2, "0");
+    const jaar = m[3];
+    return `${jaar}-${maand}-${dag}`;
+  }
+
+  return v;
+}
+
+
+
+
 async function handleCSV(event) {
   const file = event.target.files[0];
   if (!file) return;
 
   const reader = new FileReader();
 
-  reader.onload = function(e) {
+  reader.onload = async function(e) {
     const text = e.target.result.trim();
     const lines = text.split(/\r?\n/).filter(Boolean);
 
@@ -1284,8 +1300,28 @@ async function handleCSV(event) {
         notitie
       ] = cols;
 
+      if (!datum || !club || !spel) {
+        console.warn("Lege CSV-regel overgeslagen:", line);
+        continue;
+      }
+
+      const isoDatum = csvDateToIso(datum);
+
+      const bestaat = getToernooien().some(t =>
+      !t.deleted &&
+        t.date_iso === isoDatum &&
+        t.club === club &&
+        t.spel === spel
+      );
+
+      if (bestaat) {
+        console.warn("Bestaat al:", club, isoDatum);
+        continue;
+      }
+
       const item = normalizeItem({
-        date_iso: datum,
+        date_iso: isoDatum,
+        date: isoDatum,
         club: club,
         spel: spel,
         circuit: mapCircuit(circuit),
@@ -1298,14 +1334,14 @@ async function handleCSV(event) {
         updatedAt: new Date().toISOString()
       }, Date.now());
 
-
-
-      addTournament(item);
+      await addTournament(item);
       aantal++;
     }
 
-    const localNow = normalizeList(getToernooien());
-    setData(localNow, { error: "" });
+    setData(getToernooien(), { error: "" });
+    render();
+
+    event.target.value = "";
 
     alert(`${aantal} tornooien geïmporteerd 👍`);
   };
