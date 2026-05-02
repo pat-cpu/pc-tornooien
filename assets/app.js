@@ -1300,10 +1300,12 @@ async function handleCSV(event) {
         notitie
       ] = cols;
 
-      if (!datum || !club || !spel) {
-        console.warn("Lege CSV-regel overgeslagen:", line);
-        continue;
+      if (!datum || !club) {
+       console.warn("CSV-regel zonder datum of club overgeslagen:", line);
+      continue;
       }
+
+const spelNaam = spel || "petanque";
 
       const isoDatum = csvDateToIso(datum);
 
