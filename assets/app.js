@@ -1298,16 +1298,17 @@ async function handleCSV(event) {
         updatedAt: new Date().toISOString()
       }, Date.now());
 
-      await addTournament(item);
+
+
+      addTournament(item);
       aantal++;
     }
 
     const localNow = normalizeList(getToernooien());
     setData(localNow, { error: "" });
-   
 
     alert(`${aantal} tornooien geïmporteerd 👍`);
   };
 
-  
+  reader.readAsText(file);
 }
