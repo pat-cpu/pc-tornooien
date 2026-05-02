@@ -1191,11 +1191,6 @@ fCircuit?.addEventListener("change", () => {
   refreshModalSelects();
 });
 
-
-
-
-
-
 // Overbodige HTML-elementen voorlopig verbergen
 if (btnClearAll) btnClearAll.style.display = "none";
 if (btnArchive) btnArchive.style.display = "none";
@@ -1222,7 +1217,7 @@ if (statusField) {
       render();
     }
 
-    await loadFromCloudOnStart();
+    //await loadFromCloudOnStart();
   } catch (e) {
     console.error("init fout:", e);
     setSyncStatus("bad", "● init mislukt");
@@ -1238,3 +1233,81 @@ document.addEventListener("visibilitychange", async () => {
     console.error("visibility sync fout:", e);
   }
 });
+
+// CSV IMPORT
+document.getElementById("btnCsvImport")?.addEventListener("click", () => {
+  document.getElementById("csvInput")?.click();
+});
+
+document.getElementById("csvInput")?.addEventListener("change", handleCSV);
+
+function mapCircuit(value) {
+  const v = String(value || "").trim().toLowerCase().replaceAll(" ", "_");
+
+  if (v === "zomer_west") return "zomer_west";
+  if (v === "zomer_oost") return "zomer_oost";
+  if (v === "winter") return "winter";
+  if (v === "pc") return "pc";
+
+  return "pc";
+}
+
+async function handleCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = async function(e) {
+    const text = e.target.result.trim();
+    const lines = text.split(/\r?\n/).filter(Boolean);
+
+    let aantal = 0;
+
+    for (const line of lines.slice(1)) {
+      const cols = line.split(";").map(x => x.trim());
+
+      if (cols.length < 4) {
+        console.warn("CSV-regel overgeslagen:", line);
+        continue;
+      }
+
+      const [
+        datum,
+        club,
+        spel,
+        circuit,
+        uur,
+        ronden,
+        team,
+        categorie,
+        notitie
+      ] = cols;
+
+      const item = normalizeItem({
+        date_iso: datum,
+        club: club,
+        spel: spel,
+        circuit: mapCircuit(circuit),
+        status_code: "planned",
+        time: uur || "",
+        rounds: ronden || "",
+        team: team || "",
+        category: categorie || "50+",
+        note: notitie || "",
+        updatedAt: new Date().toISOString()
+      }, Date.now());
+
+      await addTournament(item);
+      aantal++;
+    }
+
+    const localNow = normalizeList(getToernooien());
+    setData(localNow, { error: "" });
+    render();
+
+    alert(`${aantal} tornooien geïmporteerd 👍`);
+  };
+
+  reader.readAsText(file);
+}

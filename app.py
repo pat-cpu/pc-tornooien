@@ -217,6 +217,20 @@ def import_csv():
         preview.append(tornooi)
 
     return jsonify(preview)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ============================
 # Run lokaal
 # ============================

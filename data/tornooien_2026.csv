@@ -1,5 +1,5 @@
-﻿datum;club;spel;circuit
-2026-05-28;PC Gullegem;Doublet;Zomer West
-2026-06-04;PC Oostende;Doublet;Zomer West
-2026-06-03;PC Donkmeer;Doublet;Zomer Oost
-2026-10-26;Pc Haeseveld;Triplet;Winter
+﻿datum;club;spel;circuit;uur;ronden;team;categorie;notitie
+2026-05-28;PC Gullegem;Doublet;Zomer_West;14:00;3;Patrick - Annie;50+;
+2026-06-04;PC Oostende;Doublet;Zomer_Oost;14:30;3;Patrick - Annie;50+;
+2026-06-03;PC Donkmeer;Doublet;Zomer_West;14:00;3;Patrick - Annie;50+;
+2026-10-26;Pc Haeseveld;Triplet;Winter;14:30;3;Patrick - Annie;50+;
