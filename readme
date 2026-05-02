@@ -45,7 +45,7 @@ python -m pip install flask-cors
 
 git status
 git add .
-git commit -m "Herstel importknop"
+git commit -m "csv optimaliseren"
 git push
 
 
