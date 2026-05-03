@@ -1,5 +1,22 @@
 console.log("APP LIVE 20260406c");
 
+const APP_VERSION = "2026-05-03-v1";
+
+const savedVersion = localStorage.getItem("app_version");
+
+if (savedVersion !== APP_VERSION) {
+  console.log("Nieuwe versie → cache reset");
+
+  localStorage.clear();
+  localStorage.setItem("app_version", APP_VERSION);
+
+  alert("App werd geüpdatet. Data opnieuw geladen.");
+}
+
+
+
+
+
 import {
   pullFromCloud,
   saveTournamentToCloud,

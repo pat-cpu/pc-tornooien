@@ -45,7 +45,7 @@ python -m pip install flask-cors
 
 git status
 git add .
-git commit -m "csv optimaliseren"
+git commit -m "OPLOSSEN CACHE IPHONES"
 git push
 
 
