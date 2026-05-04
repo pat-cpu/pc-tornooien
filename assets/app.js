@@ -1,5 +1,8 @@
 //console.log("APP LIVE 20260406c");
-
+if (location.search.includes("reset")) {
+  localStorage.clear();
+  alert("Cache gewist");
+}
 const APP_VERSION = "2026-05-03-v1";
 
 const savedVersion = localStorage.getItem("app_version");
