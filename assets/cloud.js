@@ -16,6 +16,7 @@ function rowToTournament(row) {
     category: row.category ?? "",
     rounds: row.rounds ?? "",
     team: row.team ?? "",
+    circuit: row.circuit ?? "pc",
     status_code: row.status_code ?? "",
     played_at: row.played_at ?? "",
     note: row.note ?? "",
