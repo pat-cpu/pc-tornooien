@@ -763,25 +763,16 @@ function render() {
 // ============================
 async function loadFromCloudOnStart() {
   try {
-    const localItems = normalizeList(getToernooien());
     const cloudItems = normalizeList(await pullFromCloud());
 
-    console.log("loadFromCloudOnStart local:", localItems);
     console.log("loadFromCloudOnStart cloud:", cloudItems);
 
-    const merged = mergeLocalAndCloud(localItems, cloudItems);
-
-    DATA = merged;
+    DATA = cloudItems;
     loadError = "";
     render();
 
-    writeCache(merged);
-    setSyncStatus("ok", "● sync merge ok");
-
-    const dirtyForCloud = findLocalNewerThanCloud(localItems, cloudItems);
-    for (const item of dirtyForCloud) {
-      await saveTournamentToCloud(item);
-    }
+    writeCache(cloudItems);
+    setSyncStatus("ok", "● cloud geladen");
   } catch (e) {
     console.error("loadFromCloudOnStart fout:", e);
 
