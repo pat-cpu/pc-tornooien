@@ -792,19 +792,46 @@ async function loadFromCloudOnStart() {
 
 async function importAllTournaments(arr) {
   await clearAll();
-  await clearCloudAll();
+  // await clearCloudAll();
+async function importAllTournaments(arr) {
+  await clearAll();
 
+  for (const raw of arr) {
+    const item = normalizeItem(raw, 0);
+
+    const id = stableId({
+      date_iso: item.date_iso,
+      club: item.club,
+      spel: item.spel,
+      time: item.time
+    });
+
+    await addTournament({
+      ...item,
+      id,
+      updatedAt: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      deleted: false
+    });
+  }
+
+  const localNow = normalizeList(getToernooien());
+  setData(localNow, { error: "" });
+  render();
+
+  setSyncStatus("bad", "● lokaal geïmporteerd, nog NIET naar cloud");
+}
   for (const item of normalizeList(arr)) {
     await addTournament(item);
   }
 
   const localNow = normalizeList(getToernooien());
   setData(localNow, { error: "" });
+  render();
 
-  await pushAllToCloud(localNow);
-  setSyncStatus("ok", "● import naar cloud opgeslagen");
+  // await pushAllToCloud(localNow);
+  setSyncStatus("bad", "● lokaal geïmporteerd, nog NIET naar cloud");
 }
-
 function formToItemBase() {
   return {
     id: editingId || createUuid(),
@@ -1281,9 +1308,6 @@ function csvDateToIso(value) {
   return v;
 }
 
-
-
-
 async function handleCSV(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -1295,12 +1319,14 @@ async function handleCSV(event) {
     const lines = text.split(/\r?\n/).filter(Boolean);
 
     let aantal = 0;
+    let overgeslagen = 0;
 
     for (const line of lines.slice(1)) {
       const cols = line.split(";").map(x => x.trim());
 
       if (cols.length < 4) {
         console.warn("CSV-regel overgeslagen:", line);
+        overgeslagen++;
         continue;
       }
 
@@ -1317,41 +1343,50 @@ async function handleCSV(event) {
       ] = cols;
 
       if (!datum || !club) {
-       console.warn("CSV-regel zonder datum of club overgeslagen:", line);
-      continue;
+        console.warn("CSV-regel zonder datum of club overgeslagen:", line);
+        overgeslagen++;
+        continue;
       }
 
-const spelNaam = spel || "petanque";
-
       const isoDatum = csvDateToIso(datum);
+      const spelNaam = spel || "petanque";
+      const uurNorm = uur || "";
+      const circuitNorm = mapCircuit(circuit);
 
-     const bestaat = getToernooien().some(t =>
-  !t.deleted &&
-  t.date_iso === isoDatum &&
-  t.club === club &&
-  t.spel === spel &&
-  t.circuit === mapCircuit(circuit)
-);
+      const id = stableId({
+        date_iso: isoDatum,
+        club,
+        spel: spelNaam,
+        time: uurNorm
+      });
+
+      const bestaat = getToernooien().some(t =>
+        !t.deleted && String(t.id) === String(id)
+      );
 
       if (bestaat) {
-        console.warn("Bestaat al:", club, isoDatum);
+        console.warn("Bestaat al:", club, isoDatum, spelNaam, uurNorm);
+        overgeslagen++;
         continue;
       }
 
       const item = normalizeItem({
+        id,
         date_iso: isoDatum,
         date: isoDatum,
-        club: club,
-        spel: spel,
-        circuit: mapCircuit(circuit),
+        club,
+        spel: spelNaam,
+        circuit: circuitNorm,
         status_code: "planned",
-        time: uur || "",
+        time: uurNorm,
         rounds: ronden || "",
         team: team || "",
         category: categorie || "50+",
         note: notitie || "",
-        updatedAt: new Date().toISOString()
-      }, Date.now());
+        updatedAt: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        deleted: false
+      }, 0);
 
       await addTournament(item);
       aantal++;
@@ -1362,7 +1397,7 @@ const spelNaam = spel || "petanque";
 
     event.target.value = "";
 
-    alert(`${aantal} tornooien geïmporteerd 👍`);
+    alert(`${aantal} tornooien geïmporteerd 👍\n${overgeslagen} overgeslagen`);
   };
 
   reader.readAsText(file);

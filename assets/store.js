@@ -149,14 +149,21 @@ export async function addTournament(item) {
 
   const timestamp = item?.updatedAt || item?.updated_at || nowIso();
 
-const withTimestamp = normalizeTournament({
-  ...item,
-  deleted: false,
-  updatedAt: timestamp,
-  updated_at: timestamp
-});
+  const withTimestamp = normalizeTournament({
+    ...item,
+    deleted: false,
+    updatedAt: timestamp,
+    updated_at: timestamp
+  });
 
-  items.push(withTimestamp);
+  const idx = items.findIndex(x => String(x.id) === String(withTimestamp.id));
+
+  if (idx >= 0) {
+    items[idx] = withTimestamp;   // update bestaande
+  } else {
+    items.push(withTimestamp);    // enkel nieuw toevoegen
+  }
+
   setToernooien(items);
   return withTimestamp;
 }
