@@ -1,3 +1,5 @@
+// assets/sync.js
+
 function toMs(value) {
   const ms = Date.parse(value ?? "");
   return Number.isNaN(ms) ? 0 : ms;
@@ -6,8 +8,10 @@ function toMs(value) {
 function normalizeTournament(item) {
   return {
     ...item,
-    updatedAt: item.updatedAt ?? item.updated_at ?? null,
-    deleted: item.deleted ?? false
+    id: String(item?.id ?? ""),
+    updatedAt: item?.updatedAt ?? item?.updated_at ?? null,
+    updated_at: item?.updated_at ?? item?.updatedAt ?? null,
+    deleted: Boolean(item?.deleted)
   };
 }
 
@@ -16,18 +20,26 @@ export function mergeTournamentLists(localItems = [], cloudItems = []) {
   const dirtyForCloud = [];
 
   for (const item of localItems) {
-    if (!item?.id) continue;
-    byId.set(item.id, {
-      local: normalizeTournament(item),
+    const normalized = normalizeTournament(item);
+    if (!normalized.id) continue;
+
+    byId.set(normalized.id, {
+      local: normalized,
       cloud: null
     });
   }
 
   for (const item of cloudItems) {
-    if (!item?.id) continue;
-    const current = byId.get(item.id) ?? { local: null, cloud: null };
-    current.cloud = normalizeTournament(item);
-    byId.set(item.id, current);
+    const normalized = normalizeTournament(item);
+    if (!normalized.id) continue;
+
+    const current = byId.get(normalized.id) ?? {
+      local: null,
+      cloud: null
+    };
+
+    current.cloud = normalized;
+    byId.set(normalized.id, current);
   }
 
   const merged = [];
