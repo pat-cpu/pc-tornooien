@@ -55,6 +55,7 @@ const editTitle = document.getElementById("editTitle");
 const btnCloseEdit = document.getElementById("btnCloseEdit");
 const btnSave = document.getElementById("btnSave");
 const btnDelete = document.getElementById("btnDelete");
+const btnCalendar = document.getElementById("btnCalendar");
 
 const fDate = document.getElementById("fDate");
 const fTime = document.getElementById("fTime");
@@ -144,6 +145,22 @@ const TEAM_CHOICES_BASE = ["A", "B", "C", "D"];
 // ============================
 // Helpers
 // ============================
+function openGoogleCalendar(item) {
+  const date = item.date_iso || "";
+  const time = item.time || "14:00";
+
+  const start = date.replaceAll("-", "") + "T" + time.replace(":", "") + "00";
+  const end = start;
+
+  const text = encodeURIComponent(item.club + " - " + item.spel);
+  const details = encodeURIComponent(item.note || "");
+
+  const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${start}/${end}&details=${details}`;
+
+  window.open(url, "_blank");
+}
+
+
 function ensureArrayData() {
   if (Array.isArray(DATA)) return;
   console.warn("DATA was not an array. Resetting to []. DATA=", DATA);
@@ -635,6 +652,7 @@ function openAdd() {
   refreshModalSelects();
 
   if (btnDelete) btnDelete.style.display = "none";
+  if (btnCalendar) btnCalendar.style.display = "none";
   modalEdit?.classList.add("show");
 }
 
@@ -672,6 +690,7 @@ function openEdit(id) {
   refreshModalSelects();
 
   if (btnDelete) btnDelete.style.display = "inline-block";
+  if (btnCalendar) btnCalendar.style.display = "inline-block";
   modalEdit?.classList.add("show");
 }
 
@@ -909,6 +928,26 @@ if (btnArchive) btnArchive.style.display = "none";
 if (fStatus?.closest(".field")) {
   fStatus.closest(".field").style.display = "none";
 }
+//===============
+// KALENDEREVENT
+//===============
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("#btnCalendar");
+  if (!btn) return;
+
+  alert("Agenda knop werkt");
+
+  const item = editingId
+    ? DATA.find(x => String(x.id) === String(editingId))
+    : normalizeItem(formToItemBase(), Date.now());
+
+  if (!item) {
+    alert("Geen tornooi gevonden");
+    return;
+  }
+
+  openGoogleCalendar(item);
+});
 
 // init
 (async () => {
