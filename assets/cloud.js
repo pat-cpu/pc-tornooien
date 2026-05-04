@@ -1,5 +1,5 @@
 import { supabase } from "./supabase.js";
-import { getToernooien } from "./store.js?v=20260406a";
+import { getToernooien } from "./store.js";
 
 function nowIso() {
   return new Date().toISOString();
@@ -38,6 +38,7 @@ function tournamentToRow(item) {
     category: item?.category ?? "",
     rounds: item?.rounds ?? "",
     team: item?.team ?? "",
+    circuit: item?.circuit ?? "pc",   // 👈 DEZE ONTBRAK
     status_code: item?.status_code ?? "",
     played_at: item?.played_at ?? "",
     note: item?.note ?? "",
@@ -45,15 +46,17 @@ function tournamentToRow(item) {
     deleted: item?.deleted ?? false
   };
 }
-
 export async function fetchToernooienFromCloud() {
   const { data, error } = await supabase
     .from("tournaments")
-    .select("*");
+    .select("*")
+    .order("date_iso", { ascending: true });
 
   if (error) throw error;
 
-  return (data ?? []).map(rowToTournament);
+  return (data ?? [])
+    .map(rowToTournament)
+    .filter(item => item.deleted !== true);
 }
 
 export async function pullFromCloud() {

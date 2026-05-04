@@ -61,10 +61,11 @@ export function mergeTournamentLists(localItems = [], cloudItems = []) {
     }
   }
 
-  merged.sort((a, b) => (a.date_iso ?? '').localeCompare(b.date_iso ?? ''));
+ const visibleMerged = merged
+  .filter(item => item.deleted !== true)
+  .sort((a, b) => (a.date_iso ?? '').localeCompare(b.date_iso ?? ''));
 
-  return {
-    merged,
-    dirtyForCloud
-  };
-}
+return {
+  merged: visibleMerged,
+  dirtyForCloud
+};

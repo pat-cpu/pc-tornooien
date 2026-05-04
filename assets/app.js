@@ -1,5 +1,5 @@
 //console.log("APP LIVE 20260406c");
-console.log("Aantal lijnen CSV:", lines.length);
+
 const APP_VERSION = "2026-05-03-v1";
 
 const savedVersion = localStorage.getItem("app_version");
@@ -12,17 +12,12 @@ if (savedVersion !== APP_VERSION) {
 
   alert("App werd geüpdatet. Data opnieuw geladen.");
 }
-
-
-
-
-
 import {
   pullFromCloud,
   saveTournamentToCloud,
   pushAllToCloud,
   clearCloudAll
-} from "./cloud.js?v=20260406c";
+} from "./cloud.js";
 
 import {
   getToernooien,
@@ -32,7 +27,13 @@ import {
   updateTournament,
   deleteTournament,
   getTournamentById
-} from "./store.js?v=20260406a";
+} from "./store.js";
+
+window.pushAllToCloud = pushAllToCloud;
+window.pullFromCloud = pullFromCloud;
+window.getToernooien = getToernooien;
+window.clearCloudAll = clearCloudAll;
+
 
 import {
   escapeHtml as esc,
@@ -42,7 +43,8 @@ import {
   statusFromLegacyText,
   STATUS,
   statusLabel
-} from "./model.js?v=20260405a";
+} from "./model.js";
+
 
 console.log("UI localStorage check:", getToernooien());
 
@@ -308,7 +310,7 @@ function normalizeItem(x, i = 0) {
     spel,
     time,
     category: norm(x?.category || x?.categorie || ""),
-    circuit: norm(x?.circuit || "pc"),
+    circuit: mapCircuit(x?.circuit || "pc"),
     rounds: norm(x?.rounds || ""),
     team: norm(x?.team || ""),
     status_code,
@@ -1329,12 +1331,13 @@ const spelNaam = spel || "petanque";
 
       const isoDatum = csvDateToIso(datum);
 
-      const bestaat = getToernooien().some(t =>
-      !t.deleted &&
-        t.date_iso === isoDatum &&
-        t.club === club &&
-        t.spel === spelNaam
-      );
+     const bestaat = getToernooien().some(t =>
+  !t.deleted &&
+  t.date_iso === isoDatum &&
+  t.club === club &&
+  t.spel === spel &&
+  t.circuit === mapCircuit(circuit)
+);
 
       if (bestaat) {
         console.warn("Bestaat al:", club, isoDatum);

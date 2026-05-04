@@ -120,7 +120,7 @@ export async function clearAll() {
   setToernooien([]);
 }
 export async function hydrateFromCloud(fetchRemoteFn, options = {}) {
-  const { merge = false } = options;
+  const { merge = true } = options;
 
   if (typeof fetchRemoteFn !== "function") {
     throw new Error("fetchRemoteFn ontbreekt");
@@ -128,6 +128,11 @@ export async function hydrateFromCloud(fetchRemoteFn, options = {}) {
 
   const remoteItems = await fetchRemoteFn();
   const normalized = normalizeTournamentList(remoteItems);
+
+  if (!normalized.length) {
+    console.warn("Cloud gaf 0 tornooien terug — lokale cache blijft behouden.");
+    return getToernooien();
+  }
 
   if (merge) {
     return mergeCacheFromCloud(normalized);
