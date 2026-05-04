@@ -1,5 +1,5 @@
 function toMs(value) {
-  const ms = Date.parse(value ?? '');
+  const ms = Date.parse(value ?? "");
   return Number.isNaN(ms) ? 0 : ms;
 }
 
@@ -32,7 +32,7 @@ export function mergeTournamentLists(localItems = [], cloudItems = []) {
 
   const merged = [];
 
-  for (const [id, pair] of byId.entries()) {
+  for (const [, pair] of byId.entries()) {
     const local = pair.local;
     const cloud = pair.cloud;
 
@@ -61,11 +61,12 @@ export function mergeTournamentLists(localItems = [], cloudItems = []) {
     }
   }
 
- const visibleMerged = merged
-  .filter(item => item.deleted !== true)
-  .sort((a, b) => (a.date_iso ?? '').localeCompare(b.date_iso ?? ''));
+  const visibleMerged = merged
+    .filter(item => item.deleted !== true)
+    .sort((a, b) => (a.date_iso ?? "").localeCompare(b.date_iso ?? ""));
 
-return {
-  merged: visibleMerged,
-  dirtyForCloud
-};
+  return {
+    merged: visibleMerged,
+    dirtyForCloud
+  };
+}
