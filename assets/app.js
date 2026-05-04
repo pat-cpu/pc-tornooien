@@ -1,5 +1,5 @@
-console.log("APP LIVE 20260406c");
-
+//console.log("APP LIVE 20260406c");
+console.log("Aantal lijnen CSV:", lines.length);
 const APP_VERSION = "2026-05-03-v1";
 
 const savedVersion = localStorage.getItem("app_version");
@@ -1256,12 +1256,15 @@ document.getElementById("btnCsvImport")?.addEventListener("click", () => {
 document.getElementById("csvInput")?.addEventListener("change", handleCSV);
 
 function mapCircuit(value) {
-  const v = String(value || "").trim().toLowerCase().replaceAll(" ", "_");
+  const v = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replaceAll(" ", "_");
 
-  if (v === "zomer_west") return "zomer_west";
-  if (v === "zomer_oost") return "zomer_oost";
-  if (v === "winter") return "winter";
-  if (v === "pc") return "pc";
+  if (v.includes("zomer_oost")) return "zomer_oost";
+  if (v.includes("zomer_west")) return "zomer_west";
+  if (v.includes("winter")) return "winter";
+  if (v.includes("pc")) return "pc";
 
   return "pc";
 }
