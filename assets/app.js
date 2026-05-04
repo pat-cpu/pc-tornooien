@@ -761,25 +761,56 @@ function render() {
 // ============================
 // Data loading / saving
 // ============================
+
+function mergeByNewest(localItems, cloudItems) {
+  const map = new Map();
+
+  [...localItems, ...cloudItems].forEach(item => {
+    if (!item?.id) return;
+
+    const id = String(item.id);
+    const existing = map.get(id);
+
+    const itemTime = new Date(item.updatedAt || item.updated_at || 0).getTime();
+    const existingTime = existing
+      ? new Date(existing.updatedAt || existing.updated_at || 0).getTime()
+      : -1;
+
+    if (!existing || itemTime >= existingTime) {
+      map.set(id, item);
+    }
+  });
+
+  return Array.from(map.values());
+}
+
+
+
 async function loadFromCloudOnStart() {
   try {
+    const localItems = normalizeList(getToernooien());
     const cloudItems = normalizeList(await pullFromCloud());
 
-    console.log("loadFromCloudOnStart cloud:", cloudItems);
+    console.log("local:", localItems.length);
+    console.log("cloud:", cloudItems.length);
 
-    DATA = cloudItems;
+    const merged = normalizeList(mergeByNewest(localItems, cloudItems));
+
+    DATA = merged.filter(x => !x.deleted);
     loadError = "";
+
+    writeCache(merged);
     render();
 
-    writeCache(cloudItems);
-    setSyncStatus("ok", "● cloud geladen");
+    setSyncStatus("ok", `● sync ok (${DATA.length})`);
   } catch (e) {
     console.error("loadFromCloudOnStart fout:", e);
 
     const cached = normalizeList(getToernooien());
 
-    DATA = cached;
+    DATA = cached.filter(x => !x.deleted);
     loadError = e?.message || String(e);
+
     render();
 
     if (cached.length) {
@@ -789,7 +820,6 @@ async function loadFromCloudOnStart() {
     }
   }
 }
-
 async function importAllTournaments(arr) {
   await clearAll();
   // await clearCloudAll();
@@ -1218,7 +1248,7 @@ if (statusField) {
     const cached = normalizeList(getToernooien());
 
     if (cached.length) {
-      DATA = cached;
+      DATA = cached.filter(x => !x.deleted);
       loadError = "";
       render();
       setSyncStatus("ok", "● cache geladen");
@@ -1227,7 +1257,7 @@ if (statusField) {
       render();
     }
 
-    //await loadFromCloudOnStart();
+    await loadFromCloudOnStart();
   } catch (e) {
     console.error("init fout:", e);
     setSyncStatus("bad", "● init mislukt");
