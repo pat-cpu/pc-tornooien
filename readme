@@ -56,12 +56,14 @@ Get-ChildItem -Recurse
 ls -Recurse
 tree /F
 
-
+1. Nu eerst vastzetten in GitHub:
 
 git status
 git add .
 git commit -m "Fix Supabase data and circuit sync"
-git push origin dev
+g.it push origin dev
+ 
+2.Publiceren naar online app 
 
 git checkout main
 git merge dev

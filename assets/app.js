@@ -667,14 +667,14 @@ function renderGroupedCards(items) {
 function renderCircuitTabs() {
   const baseData = getVisibleData();
 
-  const upcomingData = baseData.filter(item => matchesFilter(item, "Komend"));
+  const dataForTabs = baseData.filter(matchesChip);
 
   const countFor = (key) => {
     if (key === "alles") {
-      return baseData.filter(matchesChip).length;
+      return dataForTabs.length;
     }
 
-    return upcomingData.filter(x => (x.circuit || "pc") === key).length;
+    return dataForTabs.filter(x => (x.circuit || "pc") === key).length;
   };
 
   const tabs = [
@@ -793,34 +793,7 @@ async function loadFromCloudOnStart() {
 async function importAllTournaments(arr) {
   await clearAll();
   // await clearCloudAll();
-async function importAllTournaments(arr) {
-  await clearAll();
 
-  for (const raw of arr) {
-    const item = normalizeItem(raw, 0);
-
-    const id = stableId({
-      date_iso: item.date_iso,
-      club: item.club,
-      spel: item.spel,
-      time: item.time
-    });
-
-    await addTournament({
-      ...item,
-      id,
-      updatedAt: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      deleted: false
-    });
-  }
-
-  const localNow = normalizeList(getToernooien());
-  setData(localNow, { error: "" });
-  render();
-
-  setSyncStatus("bad", "● lokaal geïmporteerd, nog NIET naar cloud");
-}
   for (const item of normalizeList(arr)) {
     await addTournament(item);
   }
