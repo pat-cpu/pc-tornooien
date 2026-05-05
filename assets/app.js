@@ -1,20 +1,3 @@
-//console.log("APP LIVE 20260406c");
-if (location.search.includes("reset")) {
-  localStorage.clear();
-  alert("Cache gewist");
-}
-const APP_VERSION = "2026-05-03-v1";
-
-const savedVersion = localStorage.getItem("app_version");
-
-if (savedVersion !== APP_VERSION) {
-  console.log("Nieuwe versie → cache reset");
-
-  localStorage.clear();
-  localStorage.setItem("app_version", APP_VERSION);
-
-  alert("App werd geüpdatet. Data opnieuw geladen.");
-}
 import {
   pullFromCloud,
   saveTournamentToCloud,
@@ -32,12 +15,6 @@ import {
   getTournamentById
 } from "./store.js";
 
-window.pushAllToCloud = pushAllToCloud;
-window.pullFromCloud = pullFromCloud;
-window.getToernooien = getToernooien;
-window.clearCloudAll = clearCloudAll;
-
-
 import {
   escapeHtml as esc,
   norm,
@@ -48,6 +25,38 @@ import {
   statusLabel
 } from "./model.js";
 
+
+// ============================
+// APP VERSION / CACHE RESET
+// ============================
+
+const APP_VERSION = "2026-05-03-v1";
+
+if (location.search.includes("reset")) {
+  localStorage.clear();
+  alert("Cache gewist");
+}
+
+const savedVersion = localStorage.getItem("app_version");
+
+if (savedVersion !== APP_VERSION) {
+  console.log("Nieuwe versie → cache reset");
+
+  localStorage.clear();
+  localStorage.setItem("app_version", APP_VERSION);
+
+  alert("App werd geüpdatet. Data opnieuw geladen.");
+}
+
+
+// ============================
+// DEBUG HELPERS
+// ============================
+
+window.pushAllToCloud = pushAllToCloud;
+window.pullFromCloud = pullFromCloud;
+window.getToernooien = getToernooien;
+window.clearCloudAll = clearCloudAll;
 
 console.log("UI localStorage check:", getToernooien());
 

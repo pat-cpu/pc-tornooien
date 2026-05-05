@@ -60,7 +60,7 @@ tree /F
 
 git status
 git add .
-git commit -m "Fix Supabase data and circuit sync"
+git commit -m "opkuis app.js"
 g.it push origin dev
  
 2.Publiceren naar online app 
