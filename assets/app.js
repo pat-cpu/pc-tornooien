@@ -663,7 +663,6 @@ function card(item) {
     </article>
   `;
 }
-
 const CIRCUIT_LABELS = {
   pc: "PC Tornooien",
   zomer_oost: "Zomer Circuit Oost-Vlaanderen",

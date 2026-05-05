@@ -1,11 +1,11 @@
-console.log("APP LIVE 20260406c");
+// dit is de backup
 
 import {
   pullFromCloud,
   saveTournamentToCloud,
   pushAllToCloud,
-  clearCloudAll,
-} from "./cloud.js?v=20260406c";
+  clearCloudAll
+} from "./cloud.js";
 
 import {
   getToernooien,
@@ -14,8 +14,8 @@ import {
   addTournament,
   updateTournament,
   deleteTournament,
-  getTournamentById,
-} from "./store.js?v=20260406a";
+  getTournamentById
+} from "./store.js";
 
 import {
   escapeHtml as esc,
@@ -24,8 +24,41 @@ import {
   todayMidnight,
   statusFromLegacyText,
   STATUS,
-  statusLabel,
-} from "./model.js?v=20260405a";
+  statusLabel
+} from "./model.js";
+
+
+// ============================
+// APP VERSION / CACHE RESET
+// ============================
+
+const APP_VERSION = "2026-05-03-v1";
+
+if (location.search.includes("reset")) {
+  localStorage.clear();
+  alert("Cache gewist");
+}
+
+const savedVersion = localStorage.getItem("app_version");
+
+if (savedVersion !== APP_VERSION) {
+  console.log("Nieuwe versie → cache reset");
+
+  localStorage.clear();
+  localStorage.setItem("app_version", APP_VERSION);
+
+  alert("App werd geüpdatet. Data opnieuw geladen.");
+}
+
+
+// ============================
+// DEBUG HELPERS
+// ============================
+
+window.pushAllToCloud = pushAllToCloud;
+window.pullFromCloud = pullFromCloud;
+window.getToernooien = getToernooien;
+window.clearCloudAll = clearCloudAll;
 
 console.log("UI localStorage check:", getToernooien());
 
@@ -55,6 +88,7 @@ const editTitle = document.getElementById("editTitle");
 const btnCloseEdit = document.getElementById("btnCloseEdit");
 const btnSave = document.getElementById("btnSave");
 const btnDelete = document.getElementById("btnDelete");
+const btnCalendar = document.getElementById("btnCalendar");
 
 const fDate = document.getElementById("fDate");
 const fTime = document.getElementById("fTime");
@@ -118,14 +152,25 @@ const CLUB_CHOICES_BY_CIRCUIT = {
     "PC LOBOS",
     "KPC Mistral",
     "KPC Schorpioen",
-    "PC Singel, Grimbergen",
+    "PC Singel, Grimbergen"
   ],
 
-  zomer_oost: ["PC Mistral", "PC Schorpioen", "PC Verbroedering"],
+  zomer_oost: [
+    "PC Mistral",
+    "PC Schorpioen",
+    "PC Verbroedering"
+  ],
 
-  zomer_west: ["PC Brugge", "PC Oostende", "PC Kortrijk"],
+  zomer_west: [
+    "PC Brugge",
+    "PC Oostende",
+    "PC Kortrijk"
+  ],
 
-  winter: ["PC Winterclub 1", "PC Winterclub 2"],
+  winter: [
+    "PC Winterclub 1",
+    "PC Winterclub 2"
+  ]
 };
 
 const SPEL_CHOICES = [
@@ -145,7 +190,7 @@ const SPEL_CHOICES = [
   "Heren gemeng doublet, Doublet",
   "Kwartetten min 1 dame",
   "Kwartetten min 2 dames",
-  "Triplet, Doublet",
+  "Triplet, Doublet"
 ];
 
 const TEAM_CHOICES_BASE = ["A", "B", "C", "D"];
@@ -153,6 +198,22 @@ const TEAM_CHOICES_BASE = ["A", "B", "C", "D"];
 // ============================
 // Helpers
 // ============================
+function openGoogleCalendar(item) {
+  const date = item.date_iso || "";
+  const time = item.time || "14:00";
+
+  const start = date.replaceAll("-", "") + "T" + time.replace(":", "") + "00";
+  const end = start;
+
+  const text = encodeURIComponent(item.club + " - " + item.spel);
+  const details = encodeURIComponent(item.note || "");
+
+  const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${start}/${end}&details=${details}`;
+
+  window.open(url, "_blank");
+}
+
+
 function ensureArrayData() {
   if (Array.isArray(DATA)) return;
   console.warn("DATA was not an array. Resetting to []. DATA=", DATA);
@@ -168,18 +229,18 @@ function createUuid() {
 
 function getCircuitLabel(circuit) {
   switch (circuit) {
-    case "pc":
-      return "PC";
-    case "zomer_oost":
-      return "Zomer Oost";
-    case "zomer_west":
-      return "Zomer West";
-    case "winter":
-      return "Winter";
-    default:
-      return "";
+    case "pc": return "PC";
+    case "zomer_oost": return "Zomer Oost";
+    case "zomer_west": return "Zomer West";
+    case "winter": return "Winter";
+    default: return "";
   }
 }
+
+
+
+
+
 
 function todayLocalISO() {
   const now = new Date();
@@ -203,16 +264,11 @@ function setSyncStatus(state, text) {
 
 function getCircuitColor(circuit) {
   switch (circuit) {
-    case "pc":
-      return "#3b82f6"; // blauw
-    case "zomer_oost":
-      return "#16a34a"; // groen
-    case "zomer_west":
-      return "#f97316"; // oranje
-    case "winter":
-      return "#444"; // donker
-    default:
-      return "#999";
+    case "pc": return "#3b82f6";        // blauw
+    case "zomer_oost": return "#16a34a"; // groen
+    case "zomer_west": return "#f97316"; // oranje
+    case "winter": return "#444";        // donker
+    default: return "#999";
   }
 }
 
@@ -224,11 +280,11 @@ function downloadBackup() {
     app: "pc-tornooien",
     version: 1,
     exported_at: new Date().toISOString(),
-    tournaments: DATA.filter((x) => !x.deleted),
+    tournaments: DATA.filter(x => !x.deleted)
   };
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
-    type: "application/json",
+    type: "application/json"
   });
   const url = URL.createObjectURL(blob);
 
@@ -245,7 +301,7 @@ function downloadBackup() {
 
 function autoBackupAfterSave() {
   showToast({
-    text: 'Opgeslagen. Tik op "Download backup" om een reservekopie te bewaren.',
+    text: 'Opgeslagen. Tik op "Download backup" om een reservekopie te bewaren.'
   });
 }
 
@@ -257,7 +313,7 @@ function stableId({ date_iso, club, spel, time }) {
     (date_iso || "").slice(0, 10),
     norm(club).toLowerCase(),
     norm(spel).toLowerCase(),
-    norm(time).toLowerCase(),
+    norm(time).toLowerCase()
   ].join("|");
 }
 
@@ -272,7 +328,8 @@ function normalizeItem(x, i = 0) {
     : statusFromLegacyText(x?.status);
 
   const id = String(
-    x?.id || `${stableId({ date_iso, club, spel, time }) || "item"}|${i}`,
+    x?.id ||
+    `${stableId({ date_iso, club, spel, time }) || "item"}|${i}`
   );
 
   return {
@@ -284,7 +341,7 @@ function normalizeItem(x, i = 0) {
     spel,
     time,
     category: norm(x?.category || x?.categorie || ""),
-    circuit: norm(x?.circuit || "pc"),
+    circuit: mapCircuit(x?.circuit || "pc"),
     rounds: norm(x?.rounds || ""),
     team: norm(x?.team || ""),
     status_code,
@@ -293,14 +350,14 @@ function normalizeItem(x, i = 0) {
     created_at: x?.created_at || "",
     updated_at: x?.updated_at || x?.updatedAt || "",
     updatedAt: x?.updatedAt || x?.updated_at || "",
-    deleted: Boolean(x?.deleted),
+    deleted: Boolean(x?.deleted)
   };
 }
 
 function normalizeList(arr) {
   return (Array.isArray(arr) ? arr : [])
     .map((x, i) => normalizeItem(x, i))
-    .filter((x) => x.id)
+    .filter(x => x.id)
     .sort((a, b) => {
       const d = (a.date_iso || "").localeCompare(b.date_iso || "");
       if (d !== 0) return d;
@@ -350,11 +407,11 @@ function mergeLocalAndCloud(localItems, cloudItems) {
 function findLocalNewerThanCloud(localItems, cloudItems) {
   const cloudMap = new Map(
     normalizeList(cloudItems)
-      .filter((x) => x.id)
-      .map((x) => [String(x.id), x]),
+      .filter(x => x.id)
+      .map(x => [String(x.id), x])
   );
 
-  return normalizeList(localItems).filter((local) => {
+  return normalizeList(localItems).filter(local => {
     if (!local.id) return false;
 
     const cloud = cloudMap.get(String(local.id));
@@ -368,7 +425,7 @@ function findLocalNewerThanCloud(localItems, cloudItems) {
 }
 
 function getVisibleData() {
-  return (Array.isArray(DATA) ? DATA : []).filter((x) => !x.deleted);
+  return (Array.isArray(DATA) ? DATA : []).filter(x => !x.deleted);
 }
 
 // ============================
@@ -378,17 +435,17 @@ function buildSelectOptions(selEl, choices, selectedValue) {
   if (!selEl) return;
 
   const normalized = Array.from(
-    new Set((choices || []).map((s) => norm(s)).filter(Boolean)),
+    new Set((choices || []).map(s => norm(s)).filter(Boolean))
   );
 
   const opts = [
     { v: "", t: "(Kies…)" },
-    ...normalized.map((s) => ({ v: s, t: s })),
-    { v: "__CUSTOM__", t: "(Andere…)" },
+    ...normalized.map(s => ({ v: s, t: s })),
+    { v: "__CUSTOM__", t: "(Andere…)" }
   ];
 
   selEl.innerHTML = opts
-    .map((o) => `<option value="${esc(o.v)}">${esc(o.t)}</option>`)
+    .map(o => `<option value="${esc(o.v)}">${esc(o.t)}</option>`)
     .join("");
 
   const sv = norm(selectedValue);
@@ -426,12 +483,11 @@ function wireCustomSelectOnce(selEl, wrapEl, inputEl) {
 
 function getTeamChoicesFromData() {
   const fromData = (Array.isArray(DATA) ? DATA : [])
-    .map((x) => norm(x.team))
+    .map(x => norm(x.team))
     .filter(Boolean);
 
-  return Array.from(new Set([...TEAM_CHOICES_BASE, ...fromData])).sort((a, b) =>
-    a.localeCompare(b, "nl"),
-  );
+  return Array.from(new Set([...TEAM_CHOICES_BASE, ...fromData]))
+    .sort((a, b) => a.localeCompare(b, "nl"));
 }
 
 function refreshModalSelects() {
@@ -454,12 +510,7 @@ function refreshModalSelects() {
 let toastTimer = null;
 let toastUndoFn = null;
 
-function showToast({
-  text,
-  undoText = "Ongedaan maken",
-  undoFn = null,
-  ms = 6000,
-}) {
+function showToast({ text, undoText = "Ongedaan maken", undoFn = null, ms = 6000 }) {
   if (!toastEl || !toastTextEl || !toastUndoBtn) return;
 
   if (toastTimer) clearTimeout(toastTimer);
@@ -530,10 +581,8 @@ function matchesQuery(item, q) {
     item.time,
     item.rounds,
     item.team,
-    item.note,
-  ]
-    .join(" ")
-    .toLowerCase();
+    item.note
+  ].join(" ").toLowerCase();
 
   return hay.includes(q.toLowerCase());
 }
@@ -546,19 +595,19 @@ function renderChips() {
 
   if (!CHIP_ITEMS.includes(activeChip)) activeChip = "Komend";
 
-  chipsEl.innerHTML = CHIP_ITEMS.map((label) => {
-    let cls = "chip";
-    const key = label.trim().toLowerCase();
+  chipsEl.innerHTML = CHIP_ITEMS.map(label => {
+  let cls = "chip";
+  const key = label.trim().toLowerCase();
 
-    if (key === "komend") cls += " chip-komend";
-    if (key === "gespeeld") cls += " chip-gespeeld";
+  if (key === "komend") cls += " chip-komend";
+  if (key === "gespeeld") cls += " chip-gespeeld";
 
-    if (label === activeChip) cls += " active";
+  if (label === activeChip) cls += " active";
 
-    return `<button class="${cls}" data-chip="${esc(label)}">${esc(label)}</button>`;
-  }).join("");
+  return `<button class="${cls}" data-chip="${esc(label)}">${esc(label)}</button>`;
+}).join("");
 
-  chipsEl.querySelectorAll("button").forEach((btn) => {
+  chipsEl.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
       activeChip = btn.getAttribute("data-chip");
       render();
@@ -579,7 +628,7 @@ function card(item) {
 
   if (item.status_code) {
     badges.push(
-      `<span class="badge badge-status">${esc(statusLabel(item.status_code))}</span>`,
+      `<span class="badge badge-status">${esc(statusLabel(item.status_code))}</span>`
     );
   }
 
@@ -591,17 +640,13 @@ function card(item) {
     ["Spelvorm", item.spel || "—"],
     ["Uur", item.time || "—"],
     ["Ronden", item.rounds || "—"],
-    ["Team", item.team || "—"],
-  ]
-    .map(
-      ([k, v]) => `
+    ["Team", item.team || "—"]
+  ].map(([k, v]) => `
     <div class="item">
       <div class="label">${esc(k)}</div>
       <div class="value">${esc(v)}</div>
     </div>
-  `,
-    )
-    .join("");
+  `).join("");
 
   const note = item.note ? `<div class="note">${esc(item.note)}</div>` : "";
 
@@ -625,15 +670,15 @@ const CIRCUIT_LABELS = {
   pc: "PC Tornooien",
   zomer_oost: "Zomer Circuit Oost-Vlaanderen",
   zomer_west: "Zomer Circuit West-Vlaanderen",
-  winter: "Wintercompetities",
+  winter: "Wintercompetities"
 };
 
 const CIRCUIT_ORDER = ["pc", "zomer_oost", "zomer_west", "winter"];
 
 function renderGroupedCards(items) {
-  return CIRCUIT_ORDER.map((circuit) => {
+  return CIRCUIT_ORDER.map(circuit => {
     const group = items
-      .filter((x) => (x.circuit || "pc") === circuit)
+      .filter(x => (x.circuit || "pc") === circuit)
       .sort((a, b) => (a.date_iso || "").localeCompare(b.date_iso || ""));
 
     if (!group.length) return "";
@@ -650,14 +695,14 @@ function renderGroupedCards(items) {
 function renderCircuitTabs() {
   const baseData = getVisibleData();
 
-  const upcomingData = baseData.filter((item) => matchesFilter(item, "Komend"));
+  const dataForTabs = baseData.filter(matchesChip);
 
   const countFor = (key) => {
     if (key === "alles") {
-      return baseData.filter(matchesChip).length;
+      return dataForTabs.length;
     }
 
-    return upcomingData.filter((x) => (x.circuit || "pc") === key).length;
+    return dataForTabs.filter(x => (x.circuit || "pc") === key).length;
   };
 
   const tabs = [
@@ -665,22 +710,20 @@ function renderCircuitTabs() {
     { key: "pc", label: "PC" },
     { key: "zomer_oost", label: "Zomer Oost" },
     { key: "zomer_west", label: "Zomer West" },
-    { key: "winter", label: "Winter" },
+    { key: "winter", label: "Winter" }
   ];
 
   const container = document.getElementById("circuitTabs");
   if (!container) return;
 
-  container.innerHTML = tabs
-    .map((t) => {
-      const cls = t.key === activeCircuit ? "chip active" : "chip";
-      return `<button class="${cls}" data-circuit="${t.key}">
+  container.innerHTML = tabs.map(t => {
+    const cls = t.key === activeCircuit ? "chip active" : "chip";
+    return `<button class="${cls}" data-circuit="${t.key}">
       ${esc(t.label)} (${countFor(t.key)})
     </button>`;
-    })
-    .join("");
+  }).join("");
 
-  container.querySelectorAll("button").forEach((btn) => {
+  container.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
       activeCircuit = btn.getAttribute("data-circuit");
       localStorage.setItem("activeCircuit", activeCircuit);
@@ -707,8 +750,8 @@ function render() {
   const visibleData = getVisibleData();
   const filtered = visibleData
     .filter(matchesChip)
-    .filter((x) => matchesQuery(x, q))
-    .filter((x) => {
+    .filter(x => matchesQuery(x, q))
+    .filter(x => {
       if (activeCircuit === "alles") return true;
       return (x.circuit || "pc") === activeCircuit;
     });
@@ -725,7 +768,7 @@ function render() {
 
   const today0 = todayMidnight();
 
-  const upcoming = visibleData.filter((x) => {
+  const upcoming = visibleData.filter(x => {
     const d = new Date(`${x.date_iso || ""}T00:00:00`);
     return !Number.isNaN(d.getTime()) && d >= today0;
   });
@@ -735,7 +778,7 @@ function render() {
   if (statIn) statIn.textContent = "—";
 
   const next = upcoming
-    .map((x) => ({ ...x, d: new Date(`${x.date_iso || ""}T00:00:00`) }))
+    .map(x => ({ ...x, d: new Date(`${x.date_iso || ""}T00:00:00`) }))
     .sort((a, b) => a.d - b.d)[0];
 
   if (statNext) statNext.textContent = next ? next.date : "—";
@@ -746,34 +789,56 @@ function render() {
 // ============================
 // Data loading / saving
 // ============================
+
+function mergeByNewest(localItems, cloudItems) {
+  const map = new Map();
+
+  [...localItems, ...cloudItems].forEach(item => {
+    if (!item?.id) return;
+
+    const id = String(item.id);
+    const existing = map.get(id);
+
+    const itemTime = new Date(item.updatedAt || item.updated_at || 0).getTime();
+    const existingTime = existing
+      ? new Date(existing.updatedAt || existing.updated_at || 0).getTime()
+      : -1;
+
+    if (!existing || itemTime >= existingTime) {
+      map.set(id, item);
+    }
+  });
+
+  return Array.from(map.values());
+}
+
+
+
 async function loadFromCloudOnStart() {
   try {
     const localItems = normalizeList(getToernooien());
     const cloudItems = normalizeList(await pullFromCloud());
 
-    console.log("loadFromCloudOnStart local:", localItems);
-    console.log("loadFromCloudOnStart cloud:", cloudItems);
+    console.log("local:", localItems.length);
+    console.log("cloud:", cloudItems.length);
 
-    const merged = mergeLocalAndCloud(localItems, cloudItems);
+    const merged = normalizeList(mergeByNewest(localItems, cloudItems));
 
-    DATA = merged;
+    DATA = merged.filter(x => !x.deleted);
     loadError = "";
-    render();
 
     writeCache(merged);
-    setSyncStatus("ok", "● sync merge ok");
+    render();
 
-    const dirtyForCloud = findLocalNewerThanCloud(localItems, cloudItems);
-    for (const item of dirtyForCloud) {
-      await saveTournamentToCloud(item);
-    }
+    setSyncStatus("ok", `● sync ok (${DATA.length})`);
   } catch (e) {
     console.error("loadFromCloudOnStart fout:", e);
 
     const cached = normalizeList(getToernooien());
 
-    DATA = cached;
+    DATA = cached.filter(x => !x.deleted);
     loadError = e?.message || String(e);
+
     render();
 
     if (cached.length) {
@@ -783,10 +848,9 @@ async function loadFromCloudOnStart() {
     }
   }
 }
-
 async function importAllTournaments(arr) {
   await clearAll();
-  await clearCloudAll();
+  // await clearCloudAll();
 
   for (const item of normalizeList(arr)) {
     await addTournament(item);
@@ -794,11 +858,11 @@ async function importAllTournaments(arr) {
 
   const localNow = normalizeList(getToernooien());
   setData(localNow, { error: "" });
+  render();
 
-  await pushAllToCloud(localNow);
-  setSyncStatus("ok", "● import naar cloud opgeslagen");
+  // await pushAllToCloud(localNow);
+  setSyncStatus("bad", "● lokaal geïmporteerd, nog NIET naar cloud");
 }
-
 function formToItemBase() {
   return {
     id: editingId || createUuid(),
@@ -807,12 +871,12 @@ function formToItemBase() {
     time: fTime?.value || "",
     club: fClub?.value || "",
     spel: fSpel?.value || "",
-    category: fCategory?.value === "AC" ? "AllCat" : fCategory?.value || "",
+    category: fCategory?.value === "AC" ? "AllCat" : (fCategory?.value || ""),
     circuit: fCircuit?.value || "pc",
     rounds: fRounds?.value || "",
     status_code: fStatus?.value || "planned",
     team: fTeam?.value || "",
-    note: fNote?.value || "",
+    note: fNote?.value || ""
   };
 }
 
@@ -837,12 +901,13 @@ function openAdd() {
   refreshModalSelects();
 
   if (btnDelete) btnDelete.style.display = "none";
+  if (btnCalendar) btnCalendar.style.display = "none";
   modalEdit?.classList.add("show");
 }
 
 function openEdit(id) {
   ensureArrayData();
-  const item = DATA.find((x) => String(x.id) === String(id));
+  const item = DATA.find(x => String(x.id) === String(id));
   if (!item) return;
 
   editingId = item.id;
@@ -860,13 +925,14 @@ function openEdit(id) {
   const cat = (item.category || "").trim();
   const normalizedCat =
     cat === "AC" ||
-    cat.toLowerCase() === "all categorieen" ||
-    cat.toLowerCase() === "alle categorieen"
+      cat.toLowerCase() === "all categorieen" ||
+      cat.toLowerCase() === "alle categorieen"
       ? "AllCat"
       : cat;
 
-  const finalCat =
-    normalizedCat === "" || normalizedCat === "leeg" ? "50+" : normalizedCat;
+  const finalCat = normalizedCat === "" || normalizedCat === "leeg"
+    ? "50+"
+    : normalizedCat;
 
   if (fCategory) fCategory.value = finalCat;
   if (fNote) fNote.value = item.note || "";
@@ -874,6 +940,7 @@ function openEdit(id) {
   refreshModalSelects();
 
   if (btnDelete) btnDelete.style.display = "inline-block";
+  if (btnCalendar) btnCalendar.style.display = "inline-block";
   modalEdit?.classList.add("show");
 }
 
@@ -901,7 +968,7 @@ async function saveFromModal() {
 
       savedLocal = await updateTournament(editingId, {
         ...existing,
-        ...item,
+        ...item
       });
     } else {
       savedLocal = await addTournament(item);
@@ -925,7 +992,7 @@ async function saveFromModal() {
 async function deleteFromModal() {
   if (!editingId) return;
 
-  const removed = DATA.find((x) => String(x.id) === String(editingId));
+  const removed = DATA.find(x => String(x.id) === String(editingId));
   if (!removed) return;
 
   try {
@@ -946,7 +1013,7 @@ async function deleteFromModal() {
         try {
           const restored = await updateTournament(removed.id, {
             ...removed,
-            deleted: false,
+            deleted: false
           });
 
           const afterUndo = normalizeList(getToernooien());
@@ -959,7 +1026,7 @@ async function deleteFromModal() {
           setSyncStatus("bad", "● herstel naar cloud mislukt");
           alert("Herstel mislukt: " + (e?.message || e));
         }
-      },
+      }
     });
   } catch (e) {
     console.error("deleteFromModal fout:", e);
@@ -972,7 +1039,7 @@ async function deleteFromModal() {
 // Export / Import
 // ============================
 function getExportData() {
-  return (Array.isArray(DATA) ? DATA : []).filter((x) => !x.deleted);
+  return (Array.isArray(DATA) ? DATA : []).filter(x => !x.deleted);
 }
 
 function openJSON(mode) {
@@ -990,18 +1057,17 @@ function openJSON(mode) {
           app: "pc-tornooien",
           version: 1,
           exported_at: new Date().toISOString(),
-          tournaments: getExportData(),
+          tournaments: getExportData()
         },
         null,
-        2,
+        2
       );
     }
 
     if (btnApplyJSON) btnApplyJSON.style.display = "none";
   } else {
     if (jsonTitle) jsonTitle.textContent = "Import (alles)";
-    if (jsonHint)
-      jsonHint.textContent = "Plak hier je export. Dit vervangt je lijst.";
+    if (jsonHint) jsonHint.textContent = "Plak hier je export. Dit vervangt je lijst.";
     if (jsonBox) jsonBox.value = "";
     if (btnApplyJSON) btnApplyJSON.style.display = "inline-block";
   }
@@ -1051,11 +1117,11 @@ async function applyJSON() {
     let arr;
 
     if (raw.includes(";") && raw.includes("\n")) {
-      const regels = raw.split(/\r?\n/).filter((r) => r.trim());
-      const headers = regels[0].split(";").map((h) => h.trim());
+      const regels = raw.split(/\r?\n/).filter(r => r.trim());
+      const headers = regels[0].split(";").map(h => h.trim());
 
-      arr = regels.slice(1).map((regel) => {
-        const waarden = regel.split(";").map((v) => v.trim());
+      arr = regels.slice(1).map(regel => {
+        const waarden = regel.split(";").map(v => v.trim());
         const obj = {};
 
         headers.forEach((h, i) => {
@@ -1064,34 +1130,28 @@ async function applyJSON() {
 
         return obj;
       });
+
     } else {
       const payload = JSON.parse(raw);
       arr = Array.isArray(payload) ? payload : payload?.tournaments;
     }
 
-    if (!Array.isArray(arr)) {
+        if (!Array.isArray(arr)) {
       throw new Error("Geen lijst gevonden");
     }
 
-    if (!Array.isArray(arr)) {
-      throw new Error("Geen lijst gevonden");
-    }
-
+      
     const voorbeeld = arr
       .slice(0, 20)
-      .map(
-        (t) =>
-          `${t.date || t.datum || "?"} - ${t.club || "?"} - ${t.name || t.naam || "?"} - ${t.circuit || "?"}`,
-      )
+      .map(t => `${t.date || t.datum || "?"} - ${t.club || "?"} - ${t.name || t.naam || "?"} - ${t.circuit || "?"}`)
       .join("\n");
 
-    const extra =
-      arr.length > 20
-        ? `\n\n... en nog ${arr.length - 20} extra tornooien`
-        : "";
+    const extra = arr.length > 20
+      ? `\n\n... en nog ${arr.length - 20} extra tornooien`
+      : "";
 
     const akkoord = confirm(
-      `Je staat op het punt ${arr.length} tornooi(en) te importeren:\n\n${voorbeeld}${extra}\n\nWil je deze echt toevoegen?`,
+      `Je staat op het punt ${arr.length} tornooi(en) te importeren:\n\n${voorbeeld}${extra}\n\nWil je deze echt toevoegen?`
     );
 
     if (!akkoord) {
@@ -1106,6 +1166,7 @@ async function applyJSON() {
     setSyncStatus("ok", "● import naar cloud opgeslagen");
     autoBackupAfterSave();
     alert('Import OK. Tik nu op "Download backup".');
+
   } catch (e) {
     console.error("applyJSON fout:", e);
     setSyncStatus("bad", "● import mislukt");
@@ -1116,14 +1177,14 @@ async function applyJSON() {
 // Clear
 // ============================
 async function clearEverything() {
-  const code = prompt("Typ RESET om alles te wissen:");
+  const code = prompt('Typ RESET om alles te wissen:');
 
-  if (code !== "RESET") {
-    alert("Reset geannuleerd. Er is niets gewist.");
-    return;
-  }
+if (code !== "RESET") {
+  alert("Reset geannuleerd. Er is niets gewist.");
+  return;
+}
 
-  if (!confirm("⚠️ Zeker? Alles wordt lokaal én in de cloud gewist.")) return;
+if (!confirm("⚠️ Zeker? Alles wordt lokaal én in de cloud gewist.")) return;
 
   try {
     await clearAll();
@@ -1208,6 +1269,26 @@ const statusField = fStatus?.closest(".field");
 if (statusField) {
   statusField.style.display = "none";
 }
+//===============
+// KALENDEREVENT
+//===============
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("#btnCalendar");
+  if (!btn) return;
+
+  alert("Agenda knop werkt");
+
+  const item = editingId
+    ? DATA.find(x => String(x.id) === String(editingId))
+    : normalizeItem(formToItemBase(), Date.now());
+
+  if (!item) {
+    alert("Geen tornooi gevonden");
+    return;
+  }
+
+  openGoogleCalendar(item);
+});
 
 // init
 (async () => {
@@ -1217,7 +1298,7 @@ if (statusField) {
     const cached = normalizeList(getToernooien());
 
     if (cached.length) {
-      DATA = cached;
+      DATA = cached.filter(x => !x.deleted);
       loadError = "";
       render();
       setSyncStatus("ok", "● cache geladen");
@@ -1241,4 +1322,136 @@ document.addEventListener("visibilitychange", async () => {
   } catch (e) {
     console.error("visibility sync fout:", e);
   }
+});
 
+// CSV IMPORT
+document.getElementById("btnCsvImport")?.addEventListener("click", () => {
+  document.getElementById("csvInput")?.click();
+});
+
+document.getElementById("csvInput")?.addEventListener("change", handleCSV);
+
+function mapCircuit(value) {
+  const v = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replaceAll(" ", "_");
+
+  if (v.includes("zomer_oost")) return "zomer_oost";
+  if (v.includes("zomer_west")) return "zomer_west";
+  if (v.includes("winter")) return "winter";
+  if (v.includes("pc")) return "pc";
+
+  return "pc";
+}
+
+function csvDateToIso(value) {
+  const v = String(value || "").trim();
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+
+  const m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) {
+    const dag = m[1].padStart(2, "0");
+    const maand = m[2].padStart(2, "0");
+    const jaar = m[3];
+    return `${jaar}-${maand}-${dag}`;
+  }
+
+  return v;
+}
+
+async function handleCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = async function(e) {
+    const text = e.target.result.trim();
+    const lines = text.split(/\r?\n/).filter(Boolean);
+
+    let aantal = 0;
+    let overgeslagen = 0;
+
+    for (const line of lines.slice(1)) {
+      const cols = line.split(";").map(x => x.trim());
+
+      if (cols.length < 4) {
+        console.warn("CSV-regel overgeslagen:", line);
+        overgeslagen++;
+        continue;
+      }
+
+      const [
+        datum,
+        club,
+        spel,
+        circuit,
+        uur,
+        ronden,
+        team,
+        categorie,
+        notitie
+      ] = cols;
+
+      if (!datum || !club) {
+        console.warn("CSV-regel zonder datum of club overgeslagen:", line);
+        overgeslagen++;
+        continue;
+      }
+
+      const isoDatum = csvDateToIso(datum);
+      const spelNaam = spel || "petanque";
+      const uurNorm = uur || "";
+      const circuitNorm = mapCircuit(circuit);
+
+      const id = stableId({
+        date_iso: isoDatum,
+        club,
+        spel: spelNaam,
+        time: uurNorm
+      });
+
+      const bestaat = getToernooien().some(t =>
+        !t.deleted && String(t.id) === String(id)
+      );
+
+      if (bestaat) {
+        console.warn("Bestaat al:", club, isoDatum, spelNaam, uurNorm);
+        overgeslagen++;
+        continue;
+      }
+
+      const item = normalizeItem({
+        id,
+        date_iso: isoDatum,
+        date: isoDatum,
+        club,
+        spel: spelNaam,
+        circuit: circuitNorm,
+        status_code: "planned",
+        time: uurNorm,
+        rounds: ronden || "",
+        team: team || "",
+        category: categorie || "50+",
+        note: notitie || "",
+        updatedAt: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        deleted: false
+      }, 0);
+
+      await addTournament(item);
+      aantal++;
+    }
+
+    setData(getToernooien(), { error: "" });
+    render();
+
+    event.target.value = "";
+
+    alert(`${aantal} tornooien geïmporteerd 👍\n${overgeslagen} overgeslagen`);
+  };
+
+  reader.readAsText(file);
+}
