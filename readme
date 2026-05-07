@@ -61,7 +61,7 @@ tree /F
 git status
 git add .
 git commit -m "Opmaak App"
-g.it push origin dev
+git push origin dev
  
 2.Publiceren naar online app 
 
