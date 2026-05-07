@@ -156,18 +156,39 @@ const CLUB_CHOICES_BY_CIRCUIT = {
   zomer_oost: [
     "PC Mistral",
     "PC Schorpioen",
-    "PC Verbroedering"
+    "PC Verbroedering",
+    "PC Donkmeer",
+    "PC Alosta",
+    "PC Reinaert",
+    "PC Haeseveld",
+    "PC Apollo"
+  
   ],
 
   zomer_west: [
-    "PC Brugge",
+    "PC Gullegem",
     "PC Oostende",
-    "PC Kortrijk"
+    "PC Gulden Kamer",
+    "PC Koksijde",
+    "PC Okapi",
+    "PC Vuurtoren",
+    "PC Nieuwpoort",
+    "PC Den Akker",
+    "PC De Zeemeermin",
+    
   ],
 
   winter: [
-    "PC Winterclub 1",
-    "PC Winterclub 2"
+    "PC Mistral",
+    "PC Schorpioen",
+    "PC Verbroedering",
+    "PC Haeseveld",
+    "PC Reinaert",
+    "PC Donkmeer",
+    "PC Alosta",
+    "PC LOBOS",
+    "KPC Mistral",
+    "KPC Schorpioen",
   ]
 };
 
@@ -175,20 +196,15 @@ const SPEL_CHOICES = [
   "Doublet gemengd",
   "Doublet Dames",
   "Doublet Heren",
-  "Doublet",
+  "Doublet, 1 dame 1 heer",
   "Triplet",
   "Triplet gemengd",
   "Triplet Dames",
-  "Damesdoublet",
-  "Dames triplet",
-  "H/G Triplet",
-  "H/G doublet",
   "H/G Triplet kleurentornooi",
-  "Doublet, 1 dame 1 heer",
-  "Heren gemeng doublet, Doublet",
   "Kwartetten min 1 dame",
   "Kwartetten min 2 dames",
-  "Triplet, Doublet"
+  "Sextet"
+  
 ];
 
 const TEAM_CHOICES_BASE = ["A", "B", "C", "D"];
