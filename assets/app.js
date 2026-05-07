@@ -1,3 +1,5 @@
+
+
 import {
   pullFromCloud,
   saveTournamentToCloud,
@@ -110,6 +112,9 @@ const fCategory = document.getElementById("fCategory");
 const fNote = document.getElementById("fNote");
 const fCircuit = document.getElementById("fCircuit");
 const syncStatusEl = document.getElementById("syncStatus");
+
+
+
 
 // Export/Import modal
 const modalJSON = document.getElementById("modalJSON");
@@ -250,10 +255,6 @@ function getCircuitLabel(circuit) {
     default: return "";
   }
 }
-
-
-
-
 
 
 function todayLocalISO() {

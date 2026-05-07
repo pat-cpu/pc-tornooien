@@ -30,7 +30,7 @@ En dan:
 
 ```bash
 git add .
-git commit -m "add markdown guide"
+git commit -m "Opmaak"
 git push
 
 
