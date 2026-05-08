@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 # ============================
-# Config
+# Configuratie
 # ============================
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "data" / "tornooien.json"
