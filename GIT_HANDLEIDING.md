@@ -107,3 +107,20 @@ C:\Users\patri\Documenten\
 
 > Git vergeet niets…  
 > behalve wanneer ge vergeet te committen ☺
+############################################
+
+Tijdens werken
+git push origin dev
+
+Wanneer alles perfect werkt
+git push origin main
+
+Dan weet je:
+
+“Dit is mijn officiële werkende versie.”
+
+#############################################
+
+🟢 nieuw
+🟡 aangepast
+🔴 verwijderd
