@@ -211,7 +211,13 @@ const SPEL_CHOICES = [
   
 ];
 
-const TEAM_CHOICES_BASE = ["A", "B", "C", "D"];
+const TEAM_CHOICES_BASE = [
+  "Patrick - Annie",
+  "Patrick - Annie - Freddy",
+  "Patrick - Annie - Gregory",
+  "Patrick - Freddy - Hubert"
+
+];
 
 // ============================
 // Helpers
@@ -496,12 +502,7 @@ function wireCustomSelectOnce(selEl, wrapEl, inputEl) {
 }
 
 function getTeamChoicesFromData() {
-  const fromData = (Array.isArray(DATA) ? DATA : [])
-    .map(x => norm(x.team))
-    .filter(Boolean);
-
-  return Array.from(new Set([...TEAM_CHOICES_BASE, ...fromData]))
-    .sort((a, b) => a.localeCompare(b, "nl"));
+  return [...TEAM_CHOICES_BASE].sort((a, b) => a.localeCompare(b, "nl"));
 }
 
 function refreshModalSelects() {
