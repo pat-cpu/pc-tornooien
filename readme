@@ -1,69 +1,109 @@
-# Git Handleiding – Veilig pushen zonder rebase-problemen
-
-## 1. Basisworkflow (aanrader)
-
-```bash
-pushen
-git add .
-git commit -m "update"
-git push origin main
-
-Eerst syncen
-git pull --rebase origin main
-git push origin main
-
-
-Rebase oplossen
-git rebase --continue
-
-Rebase afbreken
-git rebase --abort
+# 🧰 Git & PowerShell Cheatsheet
+### Patrick Geys
 
 ---
 
-## 👇 Snelle volgende stap
-Opslaan als:
+# 📌 Git Basis
 
+## Status controleren
+```bash
+git status
+```
 
-C:\Users\patri\Documenten\zomertornooien\GIT_HANDLEIDING.md
-En dan:
-
+## Wijzigingen opslaan
 ```bash
 git add .
-git commit -m "Opmaak"
-git push
+git commit -m "update"
+git push origin main
+```
 
+---
 
----------------------------
-python -m pip install flask-cors
+# 🔄 Syncen vóór push
 
---------------------------------
+## Veilige methode
+```bash
+git pull --rebase origin main
+git push origin main
+```
 
+## Rebase oplossen
+```bash
+git rebase --continue
+```
 
+## Rebase stoppen
+```bash
+git rebase --abort
+```
 
+---
 
+# 🌿 Mijn Workflow (DEV → MAIN)
 
-git status
-git add .
-git commit -m "Opmaak HTML"
-git push
-
-----------------------------
-Get-ChildItem -Recurse
-ls -Recurse
-tree /F
-
-
-==============  mijn workflow =====================
-
-
+## Werken in DEV
+```bash
 git checkout dev
-# werken
+
 git add .
 git commit -m "wijziging"
 git push origin dev
+```
 
-# daarna pas:
+## DEV naar MAIN brengen
+```bash
 git checkout main
 git merge dev
 git push origin main
+```
+
+---
+
+# 📂 Bestanden & Mappen
+
+## Alles tonen
+```powershell
+Get-ChildItem -Recurse
+```
+
+## Korte versie
+```powershell
+ls -Recurse
+```
+
+## Boomstructuur tonen
+```powershell
+tree /F
+```
+
+---
+
+# 🐍 Python
+
+## Flask-CORS installeren
+```bash
+python -m pip install flask-cors
+```
+
+---
+
+# ⚡ Mijn Basisregel
+
+✅ Eerst testen in `dev`  
+✅ Daarna pas naar `main`  
+❌ Nooit rechtstreeks rommelen in `main`
+
+---
+
+# 📁 Handige locatie
+
+```text
+C:\Users\patri\Documenten\
+```
+
+---
+
+# 😎 Gouden Regel
+
+> Git vergeet niets…  
+> behalve wanneer ge vergeet te committen ☺
