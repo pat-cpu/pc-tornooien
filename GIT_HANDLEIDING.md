@@ -43,11 +43,9 @@ git rebase --abort
 
 ## Werken in DEV
 ```bash
-git checkout dev
 
-git add .
-git commit -m "wijziging"
-git push origin dev
+
+
 ```
 
 ## DEV naar MAIN brengen
@@ -121,6 +119,29 @@ Dan weet je:
 
 #############################################
 
+
+
+Veranderingen in vscode script terug naar origineel zetten
+git checkout -- assets/app.js
+git restore assets/app.js
+
+⚠️ Belangrijk:
+
+alle niet-gecommitte wijzigingen in app.js verdwijnen
+andere bestanden blijven ongemoeid
+
+🎯 tornooien
+🏆 winnaar
+💾 backup
+☁️ cloud
+⚙️ instellingen
+🛠️ tools
+📄 csv
+🐍 python
+🚀 release
+✅ ok
+❌ fout
+🟡 waarschuwing
 🟢 nieuw
 🟡 aangepast
 🔴 verwijderd
