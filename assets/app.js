@@ -138,7 +138,7 @@ let activeChip = "Komend";
 let editingId = null;
 let loadError = "";
 let listClickBound = false;
-let activeCircuit = localStorage.getItem("activeCircuit") || "pc";
+let activeCircuit = localStorage.getItem("activeCircuit") || "alles";
 
 const CHIP_ITEMS = ["Komend", "Gespeeld"];
 
@@ -213,6 +213,7 @@ const SPEL_CHOICES = [
 
 const TEAM_CHOICES_BASE = [
   "Patrick - Annie",
+  "Patrick - Annie - 3e speler",
   "Patrick - Annie - Freddy",
   "Patrick - Annie - Gregory",
   "Patrick - Freddy - Hubert"
@@ -719,13 +720,14 @@ function renderCircuitTabs() {
     return dataForTabs.filter(x => (x.circuit || "pc") === key).length;
   };
 
-  const tabs = [
-    { key: "alles", label: "Alle circuits" },
-    { key: "pc", label: "PC" },
-    { key: "zomer_oost", label: "Zomer Oost" },
-    { key: "zomer_west", label: "Zomer West" },
-    { key: "winter", label: "Winter" }
-  ];
+const tabs = [
+  { key: "alles", label: "Alle circuits" },
+  { key: "pc", label: "PC" },
+  { key: "zomer_oost", label: "Zomer Oost" },
+  { key: "zomer_west", label: "Zomer West" },
+  { key: "winter_50", label: "Winter 50+" },
+  { key: "winter_allcat", label: "Winter AllCat" }
+];
 
   const container = document.getElementById("circuitTabs");
   if (!container) return;
@@ -1268,28 +1270,43 @@ modalJSON?.addEventListener("click", (e) => {
 });
 
 fCircuit?.addEventListener("change", () => {
-    refreshModalSelects();
-    if (fCircuit.value === "winter") {
-      fSpelSel.value = "Triplet";
-      fSpel.value = "Triplet";
 
-      fSpelSel.dispatchEvent(new Event("change"));
-  }
-});
-fCircuit?.addEventListener("change", () => {
   refreshModalSelects();
 
-  if (fCircuit.value === "winter") {
+  // WINTER 50+
+  if (fCircuit.value === "winter_50") {
+  fSpelSel.value = "Triplet";
+  fSpel.value = "Triplet";
 
-    fSpelSel.value = "Triplet";
-    fSpel.value = "Triplet";
+  setTimeout(() => {
+    const winterTeam = "Patrick - Annie - 3e speler";
+    fTeamSel.value = winterTeam;
+    fTeam.value = winterTeam;
+  }, 300);
+}
+const winterTeam = "Patrick - Annie - 3e speler";
 
-    fTeamSel.value = "Patrick + Annie + Patrick";
-    fTeam.value = "Patrick + Annie + Patrick";
+// WINTER 50+
+if (fCircuit.value === "winter_50") {
+  fSpelSel.value = "Triplet";
+  fSpel.value = "Triplet";
 
-    fSpelSel.dispatchEvent(new Event("change"));
-    fTeamSel.dispatchEvent(new Event("change"));
-  }
+  setTimeout(() => {
+    fTeamSel.value = winterTeam;
+    fTeam.value = winterTeam;
+  }, 300);
+}
+
+// WINTER ALLCAT
+if (fCircuit.value === "winter_allcat") {
+  fSpelSel.value = "Triplet";
+  fSpel.value = "Triplet";
+
+  setTimeout(() => {
+    fTeamSel.value = winterTeam;
+    fTeam.value = winterTeam;
+  }, 300);
+}
 });
 
 wireCustomSelectOnce(fClubSel, clubCustomWrap, fClub);
@@ -1374,12 +1391,18 @@ function mapCircuit(value) {
     .toLowerCase()
     .replaceAll(" ", "_");
 
-  if (v.includes("zomer_oost")) return "zomer_oost";
-  if (v.includes("zomer_west")) return "zomer_west";
-  if (v.includes("winter")) return "winter";
-  if (v.includes("pc")) return "pc";
+if (v.includes("zomer_oost")) return "zomer_oost";
 
-  return "pc";
+if (v.includes("zomer_west")) return "zomer_west";
+
+if (v.includes("winter_allcat")) return "winter_allcat";
+
+if (v.includes("winter_50")) return "winter_50";
+
+// oude winter automatisch omzetten
+if (v === "winter") return "winter_50";
+
+if (v.includes("pc")) return "pc";
 }
 
 function csvDateToIso(value) {
@@ -1442,6 +1465,15 @@ async function handleCSV(event) {
       const spelNaam = spel || "petanque";
       const uurNorm = uur || "";
       const circuitNorm = mapCircuit(circuit);
+
+console.log("TEST winter_allcat =", mapCircuit("winter_allcat"));
+console.log("TEST winter_50 =", mapCircuit("winter_50"));
+console.log("TEST oude winter =", mapCircuit("winter"));
+
+
+
+
+
 
       const id = stableId({
         date_iso: isoDatum,

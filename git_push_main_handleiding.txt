@@ -1,0 +1,109 @@
+git_push_main_handleiding.txt
+
+GIT HANDLEIDING – MAIN CORRECT PUSHEN
+
+1. Ga naar je projectmap
+
+cd "C:\Users\patri\Documents\pc-tornooien"
+
+
+2. Controleer de status
+
+git status
+
+
+3. Zet je wijzigingen klaar
+
+git add .
+
+
+4. Maak een commit
+
+git commit -m "Korte beschrijving van de wijziging"
+
+
+5. Haal eerst de nieuwste versie van GitHub op
+
+git fetch origin
+
+
+6. Werk je lokale main correct bij
+
+git pull --rebase origin main
+
+
+7. Push naar main
+
+git push origin main
+
+
+--------------------------------------------------
+
+ALS ER EEN CONFLICT KOMT
+
+1. Open VS Code
+
+code .
+
+
+2. Los het conflict op in het bestand.
+
+Zoek naar regels zoals:
+
+<<<<<<<
+=======
+>>>>>>>
+
+
+3. Zet het opgeloste bestand klaar
+
+git add .
+
+
+4. Ga verder met de rebase
+
+git rebase --continue
+
+
+5. Daarna opnieuw pushen
+
+git push origin main
+
+
+--------------------------------------------------
+
+VEILIGE STANDAARDVOLGORDE
+
+cd "C:\Users\patri\Documents\pc-tornooien"
+git status
+git add .
+git commit -m "Beschrijving"
+git fetch origin
+git pull --rebase origin main
+git push origin main
+
+
+--------------------------------------------------
+
+NIET DOEN
+
+git push --force
+
+Alleen gebruiken als je héél zeker bent.
+Meestal: afblijven.
+
+🎯 tornooien
+🏆 winnaar
+💾 backup
+☁️ cloud
+⚙️ instellingen
+🛠️ tools
+📄 csv
+🐍 python
+🚀 release
+✅ ok
+❌ fout
+🟡 waarschuwing
+🟢 nieuw
+🟡 aangepast
+🔴 verwijderd
