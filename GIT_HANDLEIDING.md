@@ -14,6 +14,8 @@ git status
 ```bash
 git add .
 git commit -m "update"
+git checkout main
+git merge dev
 git push origin main
 ```
 
