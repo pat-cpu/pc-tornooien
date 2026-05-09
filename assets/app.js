@@ -1266,13 +1266,35 @@ modalJSON?.addEventListener("click", (e) => {
   if (e.target === modalJSON) closeJSON();
 });
 
+fCircuit?.addEventListener("change", () => {
+    refreshModalSelects();
+    if (fCircuit.value === "winter") {
+      fSpelSel.value = "Triplet";
+      fSpel.value = "Triplet";
+
+      fSpelSel.dispatchEvent(new Event("change"));
+  }
+});
+fCircuit?.addEventListener("change", () => {
+  refreshModalSelects();
+
+  if (fCircuit.value === "winter") {
+
+    fSpelSel.value = "Triplet";
+    fSpel.value = "Triplet";
+
+    fTeamSel.value = "Patrick + Annie + Patrick";
+    fTeam.value = "Patrick + Annie + Patrick";
+
+    fSpelSel.dispatchEvent(new Event("change"));
+    fTeamSel.dispatchEvent(new Event("change"));
+  }
+});
+
 wireCustomSelectOnce(fClubSel, clubCustomWrap, fClub);
 wireCustomSelectOnce(fSpelSel, spelCustomWrap, fSpel);
 wireCustomSelectOnce(fTeamSel, teamCustomWrap, fTeam);
 
-fCircuit?.addEventListener("change", () => {
-  refreshModalSelects();
-});
 
 // Overbodige HTML-elementen voorlopig verbergen
 if (btnClearAll) btnClearAll.style.display = "none";
@@ -1282,6 +1304,7 @@ const statusField = fStatus?.closest(".field");
 if (statusField) {
   statusField.style.display = "none";
 }
+
 //===============
 // KALENDEREVENT
 //===============
