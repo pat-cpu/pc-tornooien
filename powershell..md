@@ -238,16 +238,13 @@ C:\Users\patri\Documents\Scripts\
 
 Dan heb je altijd je “cheat sheet” bij de hand.
 
----
 
-Als je wil, maak ik volgende stap:
 
-👉 een **README + script bundel**
-- cleanup tool
-- backup checker
-- logs bekijken
 
-Zeg gewoon:
-**“maak pro versie”**  
-dan bouwen we jouw eigen toolkit 🔥
+
+
+
+
+👉 
+🔥
 ```
