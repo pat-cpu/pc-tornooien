@@ -147,3 +147,5 @@ andere bestanden blijven ongemoeid
 🟢 nieuw
 🟡 aangepast
 🔴 verwijderd
+
+Shift + Alt + F  

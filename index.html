@@ -34,11 +34,11 @@
   <body>
     <!-- <button id="btnCloudOphalen">Cloud ophalen</button> -->
     <header class="topbar">
-      <div class="sub">LAN parties • Esports • Gaming events </div>
+      <div class="sub">LAN parties • Esports • Gaming events</div>
       <div class="wrap">
         <div class="titleRow">
           <div>
-            <h1>PC Tornooien 2026 </h1>
+            <h1>PC Tornooien 2026</h1>
             <div class="sub">
               Gestructureerd • Status • Teams • Backup via iCloud
             </div>
@@ -80,8 +80,8 @@
 
           <!-- ⚠️ BELANGRIJK -->
           <div class="hint" style="color: #44f533; font-weight: 600">
-            ⚠️ ✔ Automatisch gesynchroniseerd met cloud
-            wijziging “Download backup”.
+            ⚠️ ✔ Automatisch gesynchroniseerd met cloud wijziging “Download
+            backup”.
           </div>
         </div>
 
@@ -104,7 +104,6 @@
           </div>
         </div>
       </div>
-      f
     </header>
 
     <main class="wrap">
@@ -138,31 +137,31 @@
             </div>
             <div>
               <label>Uur</label>
-             <!-- <input type="time" id="fTime" step="1800" /> -->
+              <!-- <input type="time" id="fTime" step="1800" /> -->
               <select id="fTime">
-                  <option value="09:00">09:00</option>
-                  <option value="09:30">09:30</option>           
-                  <option value="10:00">10:00</option>
-                  <option value="10:30">10:30</option>
+                <option value="09:00">09:00</option>
+                <option value="09:30">09:30</option>
+                <option value="10:00">10:00</option>
+                <option value="10:30">10:30</option>
 
-                  <option value="11:00">11:00</option>
-                  <option value="11:30">11:30</option>
+                <option value="11:00">11:00</option>
+                <option value="11:30">11:30</option>
 
-                  <option value="12:00">12:00</option>
-                  <option value="12:30">12:30</option>
+                <option value="12:00">12:00</option>
+                <option value="12:30">12:30</option>
 
-                  <option value="13:00">13:00</option>
-                  <option value="13:30">13:30</option>
+                <option value="13:00">13:00</option>
+                <option value="13:30">13:30</option>
 
-                  <option value="14:00">14:00</option>
-                  <option value="14:30">14:30</option>
+                <option value="14:00">14:00</option>
+                <option value="14:30">14:30</option>
 
-                  <option value="15:00">15:00</option>
-                  <option value="15:30">15:30</option>
+                <option value="15:00">15:00</option>
+                <option value="15:30">15:30</option>
 
-                  <option value="16:00">16:00</option>
-                  <option value="16:30">16:30</option>
-</select>
+                <option value="16:00">16:00</option>
+                <option value="16:30">16:30</option>
+              </select>
             </div>
           </div>
 
@@ -200,15 +199,10 @@
                 <input type="text" id="fTeam" placeholder="Typ team…" />
               </div>
             </div>
-          </div>
+         
 
           <div class="grid2">
-            <div>
-              <label>Ronden</label>
-              <input type="text" id="fRounds" />
-            </div>
-
-            <div>
+              <div>
               <label>Categorie</label>
               <select id="fCategory">
                 <option value="">(leeg)</option>
@@ -224,24 +218,46 @@
                 <option value="zomer_oost">Zomer Oost-Vlaanderen</option>
                 <option value="zomer_west">Zomer West-Vlaanderen</option>
                 <option value="winter_50">Winter 50+</option>
-                 <option value="winter_allcat">Winter AllCat</option>
+                <option value="winter_allcat">Winter AllCat</option>
               </select>
             </div>
           </div>
-          <div>
-            <label>Notitie</label>
-            <textarea id="fNote"></textarea>
+
+          <div class="field">
+            <label>Ploeg 2</label>
+            <input id="fOpponent1" type="text" />
           </div>
 
-          <div class="hint">
-            Tip: zet na elke wijziging een backup in iCloud.
+          <div class="field">
+            <label>Ploeg 3</label>
+            <input id="fOpponent2" type="text" />
           </div>
+
+          <div class="field">
+            <label>Ronde 1</label>
+            <input id="fRound1" type="text" placeholder="13-7" />
+          </div>
+
+          <div class="field">
+            <label>Ronde 2</label>
+            <input id="fRound2" type="text" placeholder="13-7" />
+          </div>
+
+          <div class="field">
+            <label>Ronde 3</label>
+            <input id="fRound3" type="text" placeholder="13-7" />
+          </div>
+
+          <label>Notitie</label>
+          <textarea id="fNote"></textarea>
         </div>
 
-        <div class="modalFooter">
-          <button class="btn danger" id="btnDelete">🗑️ Verwijderen</button>
-          <button class="btn primary" id="btnSave">Opslaan</button>
-        </div>
+        <div class="hint">Tip: zet na elke wijziging een backup in iCloud.</div>
+      </div>
+
+      <div class="modalFooter">
+        <button class="btn danger" id="btnDelete">🗑️ Verwijderen</button>
+        <button class="btn primary" id="btnSave">Opslaan</button>
       </div>
     </div>
 
@@ -280,6 +296,6 @@
       <button class="btn ghost" id="toastClose">✕</button>
     </div>
 
-   <script type="module" src="./assets/app.js?v=20260508a"></script>
+    <script type="module" src="./assets/app.js?v=20260508a"></script>
   </body>
 </html>

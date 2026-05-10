@@ -107,7 +107,7 @@ const fTeam = document.getElementById("fTeam");
 const fTeamSel = document.getElementById("fTeamSel");
 const teamCustomWrap = document.getElementById("teamCustomWrap");
 
-const fRounds = document.getElementById("fRounds");
+
 const fCategory = document.getElementById("fCategory");
 const fNote = document.getElementById("fNote");
 const fCircuit = document.getElementById("fCircuit");
@@ -873,7 +873,6 @@ function formToItemBase() {
     spel: fSpel?.value || "",
     category: fCategory?.value === "AC" ? "AllCat" : (fCategory?.value || ""),
     circuit: fCircuit?.value || "pc",
-    rounds: fRounds?.value || "",
     status_code: fStatus?.value || "planned",
     team: fTeam?.value || "",
     note: fNote?.value || ""
@@ -893,7 +892,6 @@ function openAdd() {
   if (fClub) fClub.value = "";
   if (fSpel) fSpel.value = "";
   if (fTeam) fTeam.value = "";
-  if (fRounds) fRounds.value = "";
   if (fCategory) fCategory.value = "50+";
   if (fCircuit) fCircuit.value = "pc";
   if (fNote) fNote.value = "";
@@ -919,7 +917,6 @@ function openEdit(id) {
   if (fClub) fClub.value = item.club || "";
   if (fSpel) fSpel.value = item.spel || "";
   if (fTeam) fTeam.value = item.team || "";
-  if (fRounds) fRounds.value = item.rounds || "";
   if (fCircuit) fCircuit.value = item.circuit || "pc";
 
   const cat = (item.category || "").trim();

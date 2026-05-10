@@ -50,9 +50,6 @@ code .
 
 Zoek naar regels zoals:
 
-<<<<<<<
-=======
->>>>>>>
 
 
 3. Zet het opgeloste bestand klaar
@@ -81,6 +78,8 @@ git commit -m "Beschrijving"
 git fetch origin
 git pull --rebase origin main
 git push origin main
+
+
 
 
 --------------------------------------------------

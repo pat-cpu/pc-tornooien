@@ -106,13 +106,22 @@ const fTeam = document.getElementById("fTeam");
 const fTeamSel = document.getElementById("fTeamSel");
 const teamCustomWrap = document.getElementById("teamCustomWrap");
 
-const fRounds = document.getElementById("fRounds");
 const fCategory = document.getElementById("fCategory");
 const fNote = document.getElementById("fNote");
 const fCircuit = document.getElementById("fCircuit");
 const syncStatusEl = document.getElementById("syncStatus");
 
+const winterBlock = document.getElementById("winterBlock");
 
+function toggleWinterBlock() {
+  if (!winterBlock || !fCircuit) return;
+
+  const isWinter =
+    fCircuit.value === "winter_50" ||
+    fCircuit.value === "winter_allcat";
+
+  winterBlock.style.display = isWinter ? "block" : "none";
+}
 
 
 // Export/Import modal
@@ -685,10 +694,17 @@ const CIRCUIT_LABELS = {
   pc: "PC Tornooien",
   zomer_oost: "Zomer Circuit Oost-Vlaanderen",
   zomer_west: "Zomer Circuit West-Vlaanderen",
-  winter: "Wintercompetities"
+  winter_50: "Winter 50+",
+  winter_allcat: "Winter AllCat"
 };
 
-const CIRCUIT_ORDER = ["pc", "zomer_oost", "zomer_west", "winter"];
+const CIRCUIT_ORDER = [
+  "pc",
+  "zomer_oost",
+  "zomer_west",
+  "winter_50",
+  "winter_allcat"
+];
 
 function renderGroupedCards(items) {
   return CIRCUIT_ORDER.map(circuit => {
@@ -764,13 +780,31 @@ function render() {
 
   const q = (qEl?.value || "").trim();
   const visibleData = getVisibleData();
+  
   const filtered = visibleData
-    .filter(matchesChip)
+    //.filter(matchesChip)
     .filter(x => matchesQuery(x, q))
     .filter(x => {
       if (activeCircuit === "alles") return true;
       return (x.circuit || "pc") === activeCircuit;
     });
+
+
+console.log("ACTIVE CIRCUIT =", activeCircuit);
+
+      console.table(
+        visibleData.map(x => ({
+          datum: x.date_iso,
+          club: x.club,
+          circuit: x.circuit,
+          status: x.status_code || x.status
+        }))
+      );
+
+      console.log("FILTERED =", filtered.length);
+
+
+
 
   if (!filtered.length) {
     if (loadError && !DATA.length) {
@@ -780,6 +814,7 @@ function render() {
     }
   } else {
     listEl.innerHTML = renderGroupedCards(filtered);
+    console.log("HTML IN LIJST =", listEl.innerHTML);
   }
 
   const today0 = todayMidnight();
@@ -889,7 +924,6 @@ function formToItemBase() {
     spel: fSpel?.value || "",
     category: fCategory?.value === "AC" ? "AllCat" : (fCategory?.value || ""),
     circuit: fCircuit?.value || "pc",
-    rounds: fRounds?.value || "",
     status_code: fStatus?.value || "planned",
     team: fTeam?.value || "",
     note: fNote?.value || ""
@@ -909,7 +943,6 @@ function openAdd() {
   if (fClub) fClub.value = "";
   if (fSpel) fSpel.value = "";
   if (fTeam) fTeam.value = "";
-  if (fRounds) fRounds.value = "";
   if (fCategory) fCategory.value = "50+";
   if (fCircuit) fCircuit.value = "pc";
   if (fNote) fNote.value = "";
@@ -935,7 +968,6 @@ function openEdit(id) {
   if (fClub) fClub.value = item.club || "";
   if (fSpel) fSpel.value = item.spel || "";
   if (fTeam) fTeam.value = item.team || "";
-  if (fRounds) fRounds.value = item.rounds || "";
   if (fCircuit) fCircuit.value = item.circuit || "pc";
 
   const cat = (item.category || "").trim();
@@ -1269,44 +1301,34 @@ modalJSON?.addEventListener("click", (e) => {
   if (e.target === modalJSON) closeJSON();
 });
 
+  // WINTER 50+
 fCircuit?.addEventListener("change", () => {
-
+  toggleWinterBlock();
   refreshModalSelects();
 
-  // WINTER 50+
   if (fCircuit.value === "winter_50") {
-  fSpelSel.value = "Triplet";
-  fSpel.value = "Triplet";
+    fSpelSel.value = "Triplet";
+    fSpel.value = "Triplet";
+    fCategory.value = "50+";
 
-  setTimeout(() => {
-    const winterTeam = "Patrick - Annie - 3e speler";
-    fTeamSel.value = winterTeam;
-    fTeam.value = winterTeam;
-  }, 300);
-}
-const winterTeam = "Patrick - Annie - 3e speler";
+    setTimeout(() => {
+      const winterTeam = "Patrick - Annie - 3e speler";
+      fTeamSel.value = winterTeam;
+      fTeam.value = winterTeam;
+    }, 100);
+  }
 
-// WINTER 50+
-if (fCircuit.value === "winter_50") {
-  fSpelSel.value = "Triplet";
-  fSpel.value = "Triplet";
+  if (fCircuit.value === "winter_allcat") {
+    fSpelSel.value = "Triplet";
+    fSpel.value = "Triplet";
+    fCategory.value = "AllCat";
 
-  setTimeout(() => {
-    fTeamSel.value = winterTeam;
-    fTeam.value = winterTeam;
-  }, 300);
-}
-
-// WINTER ALLCAT
-if (fCircuit.value === "winter_allcat") {
-  fSpelSel.value = "Triplet";
-  fSpel.value = "Triplet";
-
-  setTimeout(() => {
-    fTeamSel.value = winterTeam;
-    fTeam.value = winterTeam;
-  }, 300);
-}
+    setTimeout(() => {
+      const winterTeam = "Patrick - Freddy - Hubert";
+      fTeamSel.value = winterTeam;
+      fTeam.value = winterTeam;
+    }, 100);
+  }
 });
 
 wireCustomSelectOnce(fClubSel, clubCustomWrap, fClub);
