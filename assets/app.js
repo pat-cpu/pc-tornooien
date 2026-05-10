@@ -92,6 +92,19 @@ const btnCalendar = document.getElementById("btnCalendar");
 const fDate = document.getElementById("fDate");
 const fTime = document.getElementById("fTime");
 
+const fWinterR1T1 = document.getElementById("fWinterR1T1");
+const fWinterR1T2 = document.getElementById("fWinterR1T2");
+const fWinterR1T3 = document.getElementById("fWinterR1T3");
+
+const fWinterR2T1 = document.getElementById("fWinterR2T1");
+const fWinterR2T2 = document.getElementById("fWinterR2T2");
+const fWinterR2T3 = document.getElementById("fWinterR2T3");
+
+const fWinterR3T1 = document.getElementById("fWinterR3T1");
+const fWinterR3T2 = document.getElementById("fWinterR3T2");
+const fWinterR3T3 = document.getElementById("fWinterR3T3");
+
+
 const fClub = document.getElementById("fClub");
 const fClubSel = document.getElementById("fClubSel");
 const clubCustomWrap = document.getElementById("clubCustomWrap");
@@ -122,7 +135,17 @@ function toggleWinterBlock() {
 
   winterBlock.style.display = isWinter ? "block" : "none";
 }
-
+[
+  fWinterR1T1,
+  fWinterR1T2,
+  fWinterR1T3,
+  fWinterR2T1,
+  fWinterR2T2,
+  fWinterR2T3,
+  fWinterR3T1,
+  fWinterR2T2,
+  fWinterR3T3
+].forEach(createWinterScoreOptions);
 
 // Export/Import modal
 const modalJSON = document.getElementById("modalJSON");
@@ -151,7 +174,33 @@ let activeCircuit = localStorage.getItem("activeCircuit") || "alles";
 
 const CHIP_ITEMS = ["Komend", "Gespeeld"];
 
+const WINTER_TYPES = {
+  winter_50: {
+    label: "Winter 50+",
+    category: "50+",
+    spel: "Triplet",
+    teams: [
+      "Speler 1, Speler 2, Speler 3",
+      "Speler 4, Speler 5, Speler 6",
+      "Speler 7, Speler 8, Speler 9"
+    ]
+  },
+
+  winter_allcat: {
+    label: "Winter AllCat",
+    category: "AllCat",
+    spel: "Triplet",
+    teams: [
+      "Speler A, Speler B, Speler C",
+      "Speler D, Speler E, Speler F",
+      "Speler G, Speler H, Speler I"
+    ]
+  }
+};
+
 const CLUB_CHOICES_BY_CIRCUIT = {
+
+
   pc: [
     "PC Mistral",
     "PC Schorpioen",
@@ -228,6 +277,19 @@ const TEAM_CHOICES_BASE = [
   "Patrick - Freddy - Hubert"
 
 ];
+function createWinterScoreOptions(select) {
+  if (!select) return;
+
+  select.innerHTML = '<option value="">-</option>';
+
+  for (let i = 0; i <= 12; i++) {
+    select.innerHTML += `<option value="13-${i}">13-${i}</option>`;
+  }
+
+  for (let i = 0; i <= 12; i++) {
+    select.innerHTML += `<option value="${i}-13">${i}-13</option>`;
+  }
+}
 
 // ============================
 // Helpers
@@ -804,8 +866,6 @@ console.log("ACTIVE CIRCUIT =", activeCircuit);
       console.log("FILTERED =", filtered.length);
 
 
-
-
   if (!filtered.length) {
     if (loadError && !DATA.length) {
       listEl.innerHTML = `<div class="empty">Fout bij laden: ${esc(loadError)}</div>`;
@@ -862,8 +922,6 @@ function mergeByNewest(localItems, cloudItems) {
 
   return Array.from(map.values());
 }
-
-
 
 async function loadFromCloudOnStart() {
   try {
@@ -948,6 +1006,8 @@ function openAdd() {
   if (fNote) fNote.value = "";
 
   refreshModalSelects();
+  toggleWinterBlock();
+
 
   if (btnDelete) btnDelete.style.display = "none";
   if (btnCalendar) btnCalendar.style.display = "none";
@@ -1300,51 +1360,44 @@ btnApplyJSON?.addEventListener("click", applyJSON);
 modalJSON?.addEventListener("click", (e) => {
   if (e.target === modalJSON) closeJSON();
 });
+// WINTER 50+
+function isWinterCircuit(value) {
+  return value === "winter_50" || value === "winter_allcat";
+}
 
-  // WINTER 50+
 fCircuit?.addEventListener("change", () => {
+
   toggleWinterBlock();
   refreshModalSelects();
 
+  const isWinter = isWinterCircuit(fCircuit.value);
+
+  const normalBlock = document.getElementById("normalBlock");
+
+  if (normalBlock) {
+    normalBlock.style.display = isWinter ? "none" : "";
+  }
+
+  const teamWrap = document.getElementById("teamWrap");
+
+  if (teamWrap) {
+    teamWrap.style.display = isWinter ? "none" : "";
+  }
+
   if (fCircuit.value === "winter_50") {
+    fTime.value = "14:00";
     fSpelSel.value = "Triplet";
     fSpel.value = "Triplet";
     fCategory.value = "50+";
-
-    setTimeout(() => {
-      const winterTeam = "Patrick - Annie - 3e speler";
-      fTeamSel.value = winterTeam;
-      fTeam.value = winterTeam;
-    }, 100);
   }
 
   if (fCircuit.value === "winter_allcat") {
+    fTime.value = "14:30";
     fSpelSel.value = "Triplet";
     fSpel.value = "Triplet";
     fCategory.value = "AllCat";
-
-    setTimeout(() => {
-      const winterTeam = "Patrick - Freddy - Hubert";
-      fTeamSel.value = winterTeam;
-      fTeam.value = winterTeam;
-    }, 100);
   }
 });
-
-wireCustomSelectOnce(fClubSel, clubCustomWrap, fClub);
-wireCustomSelectOnce(fSpelSel, spelCustomWrap, fSpel);
-wireCustomSelectOnce(fTeamSel, teamCustomWrap, fTeam);
-
-
-// Overbodige HTML-elementen voorlopig verbergen
-if (btnClearAll) btnClearAll.style.display = "none";
-if (btnArchive) btnArchive.style.display = "none";
-
-const statusField = fStatus?.closest(".field");
-if (statusField) {
-  statusField.style.display = "none";
-}
-
 //===============
 // KALENDEREVENT
 //===============

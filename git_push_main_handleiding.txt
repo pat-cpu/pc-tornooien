@@ -74,7 +74,7 @@ VEILIGE STANDAARDVOLGORDE
 cd "C:\Users\patri\Documents\pc-tornooien"
 git status
 git add .
-git commit -m "Beschrijving"
+git commit -m "Wintercompetitie structuur en scorematrix toegevoegd"
 git fetch origin
 git pull --rebase origin main
 git push origin main

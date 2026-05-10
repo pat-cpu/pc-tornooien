@@ -1,170 +1,168 @@
 <!doctype html>
 <html lang="nl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
 
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
-    />
-    <meta name="theme-color" content="#5969B8" />
-    <meta name="theme-color" content="#0f172a" />
-    <title>PC Tornooien 2026 iPad-test</title>
-    <meta name="apple-mobile-web-app-title" content="PC Tornooien 2026" />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="180x180"
-      href="./assets/icon-180-v3.png"
-    />
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="./assets/icon-180-v3.png"
-    />
-    <link rel="stylesheet" href="./assets/styles.css?v=20260507a" />
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
 
-  <body>
-    <!-- <button id="btnCloudOphalen">Cloud ophalen</button> -->
-    <header class="topbar">
-      <div class="sub">LAN parties • Esports • Gaming events</div>
-      <div class="wrap">
-        <div class="titleRow">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#5969B8" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>PC Tornooien 2026 iPad-test</title>
+  <meta name="apple-mobile-web-app-title" content="PC Tornooien 2026" />
+  <link rel="icon" type="image/png" sizes="180x180" href="./assets/icon-180-v3.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/icon-180-v3.png" />
+  <link rel="stylesheet" href="./assets/styles.css?v=20260507a" />
+</head>
+
+<body>
+  <!-- <button id="btnCloudOphalen">Cloud ophalen</button> -->
+  <header class="topbar">
+    <div class="sub">LAN parties • Esports • Gaming events</div>
+    <div class="wrap">
+      <div class="titleRow">
+        <div>
+          <h1>PC Tornooien 2026</h1>
+          <div class="sub">
+            Gestructureerd • Status • Teams • Backup via iCloud
+          </div>
+          <div class="ver ok" id="syncStatus">● lokaal actief</div>
+        </div>
+        <div class="ver">v9.0</div>
+      </div>
+
+      <div class="controls">
+        <input id="q" class="search" type="search" placeholder="Zoek op club, spelvorm, plaats, team…"
+          autocomplete="off" />
+
+        <div class="chips" id="chips"></div>
+
+        <div class="chips">
+          <button class="btn primary" id="btnAdd">
+            ➕ Tornooi toevoegen
+          </button>
+          <button class="btn ghost" id="btnExport">Export</button>
+          <button class="btn ghost" id="btnImport">Import</button>
+          <button class="btn ghost" id="btnReset">Reset</button>
+          <button class="btn danger" id="btnClearAll">Wis alles</button>
+          <button class="btn ghost" id="btnDownload">
+            💾 Download backup
+          </button>
+          <button class="btn ghost" id="btnCsvImport">
+            📄 Importeer CSV
+          </button>
+          <button class="btn ghost" id="btnArchive">Archiveer seizoen</button>
+
+          <!-- verborgen file input -->
+          <input type="file" id="csvInput" accept=".csv" hidden />
+        </div>
+
+        <!-- ⚠️ BELANGRIJK -->
+        <div class="hint" style="color: #44f533; font-weight: 600">
+          ⚠️ ✔ Automatisch gesynchroniseerd met cloud wijziging “Download
+          backup”.
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="k">Totaal (actief)</div>
+          <div class="v" id="statTotal">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">Zichtbaar</div>
+          <div class="v" id="statVisible">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">Ingeschreven</div>
+          <div class="v" id="statIn">0</div>
+        </div>
+        <div class="stat">
+          <div class="k">Eerstvolgende</div>
+          <div class="v" id="statNext">—</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="circuitTabs" class="chips"></div>
+
+    <div class="list" id="list"></div>
+
+    <!-- Footer -->
+    <div class="footer">
+      Lokale bewaring per toestel • Geen automatische sync • Gebruik
+      regelmatig “Download backup”
+    </div>
+    <div class="footer">pc-tornooien v0.9 werkend</div>
+  </main>
+
+  <!-- ========================= -->
+  <!-- MODAL: ADD / EDIT -->
+  <!-- ========================= -->
+  <div class="modalBackdrop" id="modalEdit">
+    <div class="modal">
+      <div class="modalHeader">
+        <div class="h" id="editTitle">Tornooi</div>
+        <button class="btn" id="btnCloseEdit">Sluiten</button>
+      </div>
+
+      <div class="modalBody">
+        <div class="grid2">
           <div>
-            <h1>PC Tornooien 2026</h1>
-            <div class="sub">
-              Gestructureerd • Status • Teams • Backup via iCloud
-            </div>
-            <div class="ver ok" id="syncStatus">● lokaal actief</div>
-          </div>
-          <div class="ver">v9.0</div>
-        </div>
-
-        <div class="controls">
-          <input
-            id="q"
-            class="search"
-            type="search"
-            placeholder="Zoek op club, spelvorm, plaats, team…"
-            autocomplete="off"
-          />
-
-          <div class="chips" id="chips"></div>
-
-          <div class="chips">
-            <button class="btn primary" id="btnAdd">
-              ➕ Tornooi toevoegen
-            </button>
-            <button class="btn ghost" id="btnExport">Export</button>
-            <button class="btn ghost" id="btnImport">Import</button>
-            <button class="btn ghost" id="btnReset">Reset</button>
-            <button class="btn danger" id="btnClearAll">Wis alles</button>
-            <button class="btn ghost" id="btnDownload">
-              💾 Download backup
-            </button>
-            <button class="btn ghost" id="btnCsvImport">
-              📄 Importeer CSV
-            </button>
-            <button class="btn ghost" id="btnArchive">Archiveer seizoen</button>
-
-            <!-- verborgen file input -->
-            <input type="file" id="csvInput" accept=".csv" hidden />
+            <label>Datum</label>
+            <input type="date" id="fDate" />
           </div>
 
-          <!-- ⚠️ BELANGRIJK -->
-          <div class="hint" style="color: #44f533; font-weight: 600">
-            ⚠️ ✔ Automatisch gesynchroniseerd met cloud wijziging “Download
-            backup”.
+          <div>
+            <label>Uur</label>
+            <select id="fTime">
+              <option value="09:00">09:00</option>
+              <option value="09:30">09:30</option>
+              <option value="10:00">10:00</option>
+              <option value="10:30">10:30</option>
+              <option value="11:00">11:00</option>
+              <option value="11:30">11:30</option>
+              <option value="12:00">12:00</option>
+              <option value="12:30">12:30</option>
+              <option value="13:00">13:00</option>
+              <option value="13:30">13:30</option>
+              <option value="14:00">14:00</option>
+              <option value="14:30">14:30</option>
+              <option value="15:00">15:00</option>
+              <option value="15:30">15:30</option>
+              <option value="16:00">16:00</option>
+              <option value="16:30">16:30</option>
+            </select>
           </div>
         </div>
 
-        <div class="stats">
-          <div class="stat">
-            <div class="k">Totaal (actief)</div>
-            <div class="v" id="statTotal">0</div>
+        <div class="grid2">
+          <div>
+            <label>Circuit</label>
+            <select id="fCircuit">
+              <option value="pc">PC</option>
+              <option value="zomer_oost">Zomer Oost-Vlaanderen</option>
+              <option value="zomer_west">Zomer West-Vlaanderen</option>
+              <option value="winter_50">Winter 50+</option>
+              <option value="winter_allcat">Winter AllCat</option>
+            </select>
           </div>
-          <div class="stat">
-            <div class="k">Zichtbaar</div>
-            <div class="v" id="statVisible">0</div>
-          </div>
-          <div class="stat">
-            <div class="k">Ingeschreven</div>
-            <div class="v" id="statIn">0</div>
-          </div>
-          <div class="stat">
-            <div class="k">Eerstvolgende</div>
-            <div class="v" id="statNext">—</div>
+
+          <div id="categoryWrap">
+            <label>Categorie</label>
+            <select id="fCategory">
+              <option value="">(leeg)</option>
+              <option value="50+">50+</option>
+              <option value="AllCat">AllCat</option>
+            </select>
           </div>
         </div>
-      </div>
-    </header>
 
-    <main class="wrap">
-      <div id="circuitTabs" class="chips"></div>
-
-      <div class="list" id="list"></div>
-
-      <!-- Footer -->
-      <div class="footer">
-        Lokale bewaring per toestel • Geen automatische sync • Gebruik
-        regelmatig “Download backup”
-      </div>
-      <div class="footer">pc-tornooien v0.9 werkend</div>
-    </main>
-
-    <!-- ========================= -->
-    <!-- MODAL: ADD / EDIT -->
-    <!-- ========================= -->
-    <div class="modalBackdrop" id="modalEdit">
-      <div class="modal">
-        <div class="modalHeader">
-          <div class="h" id="editTitle">Tornooi</div>
-          <button class="btn" id="btnCloseEdit">Sluiten</button>
-        </div>
-
-        <div class="modalBody">
-          <div class="grid2">
-            <div>
-              <label>Datum</label>
-              <input type="date" id="fDate" />
-            </div>
-            <div>
-              <label>Uur</label>
-              <!-- <input type="time" id="fTime" step="1800" /> -->
-              <select id="fTime">
-                <option value="09:00">09:00</option>
-                <option value="09:30">09:30</option>
-                <option value="10:00">10:00</option>
-                <option value="10:30">10:30</option>
-
-                <option value="11:00">11:00</option>
-                <option value="11:30">11:30</option>
-
-                <option value="12:00">12:00</option>
-                <option value="12:30">12:30</option>
-
-                <option value="13:00">13:00</option>
-                <option value="13:30">13:30</option>
-
-                <option value="14:00">14:00</option>
-                <option value="14:30">14:30</option>
-
-                <option value="15:00">15:00</option>
-                <option value="15:30">15:30</option>
-
-                <option value="16:00">16:00</option>
-                <option value="16:30">16:30</option>
-              </select>
-            </div>
-          </div>
-
+        <div id="normalBlock">
           <div>
             <label>Club / Plaats</label>
             <select id="fClubSel"></select>
@@ -182,7 +180,7 @@
           </div>
 
           <div class="grid2">
-            <div>
+            <div id="statusWrap">
               <label>Status</label>
               <select id="fStatus">
                 <option value="planned">Gepland</option>
@@ -191,111 +189,104 @@
                 <option value="played">Gespeeld</option>
               </select>
             </div>
-
-            <div>
+            <div id="teamWrap">
               <label>Team</label>
               <select id="fTeamSel"></select>
               <div id="teamCustomWrap" style="display: none; margin-top: 10px">
                 <input type="text" id="fTeam" placeholder="Typ team…" />
               </div>
             </div>
-         
+          </div>
+        </div>
+        <div id="winterBlock" class="winter-block">
+          <h3>❄️ Wintercompetitie</h3>
 
           <div class="grid2">
-              <div>
-              <label>Categorie</label>
-              <select id="fCategory">
-                <option value="">(leeg)</option>
-                <option value="50+">50+</option>
-                <option value="AllCat">AllCat</option>
-              </select>
+            <div>
+              <label>Ploeg 1</label>
+              <input id="winterTeam1" type="text" />
             </div>
 
             <div>
-              <label>Circuit</label>
-              <select id="fCircuit">
-                <option value="pc">PC</option>
-                <option value="zomer_oost">Zomer Oost-Vlaanderen</option>
-                <option value="zomer_west">Zomer West-Vlaanderen</option>
-                <option value="winter_50">Winter 50+</option>
-                <option value="winter_allcat">Winter AllCat</option>
-              </select>
+              <label>Ploeg 2</label>
+              <input id="winterTeam2" type="text" />
             </div>
           </div>
 
-          <div class="field">
-            <label>Ploeg 2</label>
-            <input id="fOpponent1" type="text" />
-          </div>
-
-          <div class="field">
+          <div>
             <label>Ploeg 3</label>
-            <input id="fOpponent2" type="text" />
+            <input id="winterTeam3" type="text" />
           </div>
 
-          <div class="field">
-            <label>Ronde 1</label>
-            <input id="fRound1" type="text" placeholder="13-7" />
+          <hr>
+
+          <h4>Wedstrijden</h4>
+
+          <div class="winterScores">
+            <div></div>
+            <div class="winterScoreHeader">Ploeg 1</div>
+            <div class="winterScoreHeader">Ploeg 2</div>
+            <div class="winterScoreHeader">Ploeg 3</div>
+
+            <div class="winterRoundLabel">Ronde 1</div>
+            <select id="fWinterR1T1"></select>
+            <select id="fWinterR1T2"></select>
+            <select id="fWinterR1T3"></select>
+
+            <div class="winterRoundLabel">Ronde 2</div>
+            <select id="fWinterR2T1"></select>
+            <select id="fWinterR2T2"></select>
+            <select id="fWinterR2T3"></select>
+
+            <div class="winterRoundLabel">Ronde 3</div>
+            <select id="fWinterR3T1"></select>
+            <select id="fWinterR3T2"></select>
+            <select id="fWinterR3T3"></select>
+            <label>Notitie</label>
+            <textarea id="fNote"></textarea>
+
+            <div class="hint">Tip: zet na elke wijziging een backup in iCloud.</div>
           </div>
 
-          <div class="field">
-            <label>Ronde 2</label>
-            <input id="fRound2" type="text" placeholder="13-7" />
+
+          <div class="modalFooter">
+            <button class="btn danger" id="btnDelete">🗑️ Verwijderen</button>
+            <button class="btn primary" id="btnSave">Opslaan</button>
           </div>
+        </div>
 
-          <div class="field">
-            <label>Ronde 3</label>
-            <input id="fRound3" type="text" placeholder="13-7" />
+        <!-- ========================= -->
+        <!-- MODAL: EXPORT / IMPORT -->
+        <!-- ========================= -->
+        <div class="modalBackdrop" id="modalJSON">
+          <div class="modal">
+            <div class="modalHeader">
+              <div class="h" id="jsonTitle">Export</div>
+              <button class="btn" id="btnCloseJSON">Sluiten</button>
+            </div>
+
+            <div class="modalBody">
+              <div class="hint" id="jsonHint"></div>
+              <textarea id="jsonBox" spellcheck="false" style="min-height: 220px"></textarea>
+            </div>
+
+            <div class="modalFooter">
+              <button class="btn" id="btnCopyJSON">Kopieer</button>
+              <button class="btn primary" id="btnApplyJSON">Importeer</button>
+            </div>
           </div>
-
-          <label>Notitie</label>
-          <textarea id="fNote"></textarea>
         </div>
 
-        <div class="hint">Tip: zet na elke wijziging een backup in iCloud.</div>
-      </div>
-
-      <div class="modalFooter">
-        <button class="btn danger" id="btnDelete">🗑️ Verwijderen</button>
-        <button class="btn primary" id="btnSave">Opslaan</button>
-      </div>
-    </div>
-
-    <!-- ========================= -->
-    <!-- MODAL: EXPORT / IMPORT -->
-    <!-- ========================= -->
-    <div class="modalBackdrop" id="modalJSON">
-      <div class="modal">
-        <div class="modalHeader">
-          <div class="h" id="jsonTitle">Export</div>
-          <button class="btn" id="btnCloseJSON">Sluiten</button>
+        <!-- ========================= -->
+        <!-- TOAST -->
+        <!-- ========================= -->
+        <div class="toast" id="toast">
+          <div id="toastText"></div>
+          <button class="btn ghost" id="toastUndo">Ongedaan maken</button>
+          <button class="btn ghost" id="toastClose">✕</button>
         </div>
 
-        <div class="modalBody">
-          <div class="hint" id="jsonHint"></div>
-          <textarea
-            id="jsonBox"
-            spellcheck="false"
-            style="min-height: 220px"
-          ></textarea>
-        </div>
+        <script type="module" src="./assets/app.js?v=20260508a"></script>
+</body>
 
-        <div class="modalFooter">
-          <button class="btn" id="btnCopyJSON">Kopieer</button>
-          <button class="btn primary" id="btnApplyJSON">Importeer</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================= -->
-    <!-- TOAST -->
-    <!-- ========================= -->
-    <div class="toast" id="toast">
-      <div id="toastText"></div>
-      <button class="btn ghost" id="toastUndo">Ongedaan maken</button>
-      <button class="btn ghost" id="toastClose">✕</button>
-    </div>
-
-    <script type="module" src="./assets/app.js?v=20260508a"></script>
-  </body>
 </html>
