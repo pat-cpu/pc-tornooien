@@ -517,9 +517,22 @@ function findLocalNewerThanCloud(localItems, cloudItems) {
 }
 
 function getVisibleData() {
-  return (Array.isArray(DATA) ? DATA : []).filter(x => !x.deleted);
-}
+  return (Array.isArray(DATA) ? DATA : []).filter(item => {
 
+    if (item.deleted) return false;
+
+    // Circuit filter
+    if (
+      activeCircuit !== "alles" &&
+      (item.circuit || "pc") !== activeCircuit
+    ) {
+      return false;
+    }
+
+    // Chip filter (Komend / Gespeeld)
+    return matchesFilter(item, activeChip);
+  });
+}
 // ============================
 // Dropdown helpers
 // ============================
