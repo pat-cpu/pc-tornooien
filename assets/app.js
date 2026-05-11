@@ -517,9 +517,22 @@ function findLocalNewerThanCloud(localItems, cloudItems) {
 }
 
 function getVisibleData() {
-  return (Array.isArray(DATA) ? DATA : []).filter(x => !x.deleted);
-}
+  return (Array.isArray(DATA) ? DATA : []).filter(item => {
 
+    if (item.deleted) return false;
+
+    // Circuit filter
+    if (
+      activeCircuit !== "alles" &&
+      (item.circuit || "pc") !== activeCircuit
+    ) {
+      return false;
+    }
+
+    // Chip filter (Komend / Gespeeld)
+    return matchesFilter(item, activeChip);
+  });
+}
 // ============================
 // Dropdown helpers
 // ============================
@@ -786,17 +799,21 @@ function renderGroupedCards(items) {
 }
 
 function renderCircuitTabs() {
-  const baseData = getVisibleData();
-
-  const dataForTabs = baseData.filter(matchesChip);
+  const baseData = (Array.isArray(DATA) ? DATA : []).filter(item => {
+    if (item.deleted) return false;
+    return matchesFilter(item, activeChip);
+  });
 
   const countFor = (key) => {
     if (key === "alles") {
-      return dataForTabs.length;
+      return baseData.length;
     }
 
-    return dataForTabs.filter(x => (x.circuit || "pc") === key).length;
+    return baseData.filter(x => (x.circuit || "pc") === key).length;
   };
+
+  // rest van je bestaande code laten staan
+
 
 const tabs = [
   { key: "alles", label: "Alle circuits" },
