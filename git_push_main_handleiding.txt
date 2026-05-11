@@ -71,7 +71,6 @@ git push origin main
 
 VEILIGE STANDAARDVOLGORDE
 
-cd "C:\Users\patri\Documents\pc-tornooien"
 git status
 git add .
 git commit -m "Scherem aanpassen iPhone"
