@@ -370,3 +370,16 @@ button.chip.chip-gespeeld {
   min-width: 0;
   text-align: center;
 }
+
+@media (max-width: 600px) {
+
+  input[type="date"] {
+    font-size: 16px;
+    padding: 10px 12px;
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+
+}
