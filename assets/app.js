@@ -652,18 +652,20 @@ function matchesFilter(item, filterName) {
   const isPast = hasValidDate && d < today;
   const statusCode = item.status_code || STATUS.PLANNED;
 
+
   switch (filterName) {
-    case "Komend":
-      return hasValidDate && !isPast && statusCode !== STATUS.PLAYED;
-    case "Ingeschreven":
-      return statusCode === STATUS.REGISTERED;
-    case "Betaald":
-      return statusCode === STATUS.PAID;
-    case "Gespeeld":
-      return isPast || statusCode === STATUS.PLAYED;
-    default:
-      return true;
-  }
+  case "Komend":
+    return hasValidDate && !isPast;
+
+  case "Ingeschreven":
+    return statusCode === STATUS.REGISTERED;
+
+  case "Betaald":
+    return statusCode === STATUS.PAID;
+
+  default:
+    return true;
+}
 }
 
 function matchesChip(item) {
@@ -696,16 +698,15 @@ function renderChips() {
   if (!CHIP_ITEMS.includes(activeChip)) activeChip = "Komend";
 
   chipsEl.innerHTML = CHIP_ITEMS.map(label => {
-  let cls = "chip";
-  const key = label.trim().toLowerCase();
+    let cls = "chip";
+    const key = label.trim().toLowerCase();
 
-  if (key === "komend") cls += " chip-komend";
-  if (key === "gespeeld") cls += " chip-gespeeld";
+    if (key === "komend") cls += " chip-komend";
 
-  if (label === activeChip) cls += " active";
+    if (label === activeChip) cls += " active";
 
-  return `<button class="${cls}" data-chip="${esc(label)}">${esc(label)}</button>`;
-}).join("");
+    return `<button class="${cls}" data-chip="${esc(label)}">${esc(label)}</button>`;
+  }).join("");
 
   chipsEl.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -891,7 +892,8 @@ console.log("ACTIVE CIRCUIT =", activeCircuit);
     }
   } else {
     listEl.innerHTML = renderGroupedCards(filtered);
-    console.log("HTML IN LIJST =", listEl.innerHTML);
+    //console.log("HTML IN LIJST =", listEl.innerHTML);
+    console.log("Aantal gerenderde kaarten:", filtered.length);
   }
 
   const today0 = todayMidnight();

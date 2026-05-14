@@ -1,4 +1,4 @@
-console.log("STORE VERSION STATIC 2026-04-06-A");
+console.log("store.js geladen");
 
 const DATA_URL = "../data/tornooien.json";
 const STORAGE_KEY_CACHE = "pc_tornooien_cache_v9";

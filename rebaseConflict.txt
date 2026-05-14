@@ -1,0 +1,35 @@
+Patrick, je zit midden in een rebase-conflict. Geen paniek: alleen index.html botst.
+
+Doe dit:
+
+code index.html
+
+Zoek in index.html naar dit soort stukken:
+
+...
+
+Kies de juiste versie, verwijder de conflict-regels:
+
+
+Bewaar het bestand.
+
+Daarna:
+
+git add index.html
+git rebase --continue
+
+Als VS Code een commit-tekst opent: gewoon sluiten/bewaren.
+
+Daarna controleren:
+
+git status
+
+Als alles goed is:
+
+git push origin main
+
+Als Git zegt dat push niet kan door geschiedenisverschil:
+
+git push --force-with-lease origin main
+
+Niet --force gebruiken, wel --force-with-lease. Dat is de versie met veiligheidsgordel.
