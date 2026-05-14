@@ -1,151 +1,35 @@
-# 🧰 Git & PowerShell Cheatsheet
-### Patrick Geys
+Git Workflow voor pc-tornooien
+Standaard workflow om wijzigingen veilig op GitHub en online te krijgen.
 
----
-
-# 📌 Git Basis
-
-## Status controleren
-```bash
-git status
-```
-
-## Wijzigingen opslaan
-```bash
-git add .
-git commit -m "update"
-git checkout main
-git merge dev
-git push origin main
-```
-
----
-
-# 🔄 Syncen vóór push
-
-## Veilige methode
-```bash
+1. Eerst ophalen van GitHub
 git pull --rebase origin main
+
+Waarom:
+- haalt nieuwste online versie binnen
+- zet jouw wijzigingen erboven
+- voorkomt bijna alle merge-conflicten
+2. Controleer wat gewijzigd is
+git status
+3. Alles toevoegen
+git add .
+4. Commit maken
+git commit -m "Korte beschrijving"
+
+Voorbeeld:
+git commit -m "iPhone layout verbeterd"
+5. Naar GitHub sturen
 git push origin main
-```
+Belangrijkste fout die je had
+Je deed eerst committen vóór pull --rebase.
+Daardoor had jij lokale commits terwijl GitHub ook nieuwe commits had.
+Git moest dan conflicten oplossen.
+Beste veilige routine
+Bij starten:
+git pull --rebase origin main
 
-## Rebase oplossen
-```bash
-git rebase --continue
-```
-
-## Rebase stoppen
-```bash
-git rebase --abort
-```
-
----
-
-# 🌿 Mijn Workflow (DEV → MAIN)
-
-## Werken in DEV
-```bash
-
-
-
-```
-
-## DEV naar MAIN brengen
-```bash
-git checkout main
-git merge dev
+Bij klaar:
+git add .
+git commit -m "omschrijving"
 git push origin main
-```
-
----
-
-# 📂 Bestanden & Mappen
-
-## Alles tonen
-```powershell
-Get-ChildItem -Recurse
-```
-
-## Korte versie
-```powershell
-ls -Recurse
-```
-
-## Boomstructuur tonen
-```powershell
-tree /F
-```
-
----
-
-# 🐍 Python
-
-## Flask-CORS installeren
-```bash
-python -m pip install flask-cors
-```
-
----
-
-# ⚡ Mijn Basisregel
-
-✅ Eerst testen in `dev`  
-✅ Daarna pas naar `main`  
-❌ Nooit rechtstreeks rommelen in `main`
-
----
-
-# 📁 Handige locatie
-
-```text
-C:\Users\patri\Documenten\
-```
-
----
-
-# 😎 Gouden Regel
-
-> Git vergeet niets…  
-> behalve wanneer ge vergeet te committen ☺
-############################################
-
-Tijdens werken
-git push origin dev
-
-Wanneer alles perfect werkt
-git push origin main
-
-Dan weet je:
-
-“Dit is mijn officiële werkende versie.”
-
-#############################################
-
-
-
-Veranderingen in vscode script terug naar origineel zetten
-git checkout -- assets/app.js
-git restore assets/app.js
-
-⚠️ Belangrijk:
-
-alle niet-gecommitte wijzigingen in app.js verdwijnen
-andere bestanden blijven ongemoeid
-
-🎯 tornooien
-🏆 winnaar
-💾 backup
-☁️ cloud
-⚙️ instellingen
-🛠️ tools
-📄 csv
-🐍 python
-🚀 release
-✅ ok
-❌ fout
-🟡 waarschuwing
-🟢 nieuw
-🟡 aangepast
-🔴 verwijderd
-
-Shift + Alt + F  
+Gouden regel
+ALTIJD eerst pullen vóór committen
