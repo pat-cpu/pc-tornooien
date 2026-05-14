@@ -1420,23 +1420,7 @@ fCircuit?.addEventListener("change", () => {
 //===============
 // KALENDEREVENT
 //===============
-document.addEventListener("click", (e) => {
-  const btn = e.target.closest("#btnCalendar");
-  if (!btn) return;
 
-  alert("Agenda knop werkt");
-
-  const item = editingId
-    ? DATA.find(x => String(x.id) === String(editingId))
-    : normalizeItem(formToItemBase(), Date.now());
-
-  if (!item) {
-    alert("Geen tornooi gevonden");
-    return;
-  }
-
-  openGoogleCalendar(item);
-});
 
 // init
 (async () => {
