@@ -73,7 +73,7 @@ VEILIGE STANDAARDVOLGORDE
 
 git status
 git add .
-git commit -m "Scherem aanpassen iPhone"
+git commit -m "verbeteringen code"
 git fetch origin
 git pull --rebase origin main
 git push origin main

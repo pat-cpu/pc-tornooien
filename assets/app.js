@@ -35,6 +35,7 @@ const APP_VERSION = "2026-05-03-v1";
 
 if (location.search.includes("reset")) {
   localStorage.clear();
+  localStorage.setItem("app_version", APP_VERSION);
   alert("Cache gewist");
 }
 
@@ -143,7 +144,7 @@ function toggleWinterBlock() {
   fWinterR2T2,
   fWinterR2T3,
   fWinterR3T1,
-  fWinterR2T2,
+  fWinterR3T2,
   fWinterR3T3
 ].forEach(createWinterScoreOptions);
 
