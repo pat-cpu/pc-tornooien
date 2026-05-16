@@ -123,6 +123,13 @@ const teamCustomWrap = document.getElementById("teamCustomWrap");
 const fCategory = document.getElementById("fCategory");
 const fNote = document.getElementById("fNote");
 const fCircuit = document.getElementById("fCircuit");
+
+const roundsWrap = document.getElementById("roundsWrap");
+const fRounds = document.getElementById("fRounds");
+
+
+
+
 const syncStatusEl = document.getElementById("syncStatus");
 
 const winterBlock = document.getElementById("winterBlock");
@@ -135,7 +142,14 @@ function toggleWinterBlock() {
     fCircuit.value === "winter_allcat";
 
   winterBlock.style.display = isWinter ? "block" : "none";
+
+  // Ronden alleen zichtbaar bij PC
+  if (roundsWrap) {
+    roundsWrap.style.display =
+      fCircuit.value === "pc" ? "block" : "none";
+  }
 }
+
 [
   fWinterR1T1,
   fWinterR1T2,
@@ -147,6 +161,7 @@ function toggleWinterBlock() {
   fWinterR3T2,
   fWinterR3T3
 ].forEach(createWinterScoreOptions);
+
 
 // Export/Import modal
 const modalJSON = document.getElementById("modalJSON");
@@ -1008,7 +1023,7 @@ function formToItemBase() {
     date_iso: fDate?.value || "",
     date: toDisplayDate(fDate?.value || ""),
     time: fTime?.value || "",
-
+    rounds: fCircuit?.value === "pc" ? (fRounds?.value || "") : "3",
     club: getSelectOrCustom(fClubSel, fClub),
     spel: getSelectOrCustom(fSpelSel, fSpel),
     team: getSelectOrCustom(fTeamSel, fTeam),
@@ -1030,6 +1045,7 @@ function openAdd() {
   if (fDate) fDate.value = todayLocalISO();
   if (fStatus) fStatus.value = "planned";
   if (fTime) fTime.value = "";
+  if (fRounds) fRounds.value = "";
   if (fClub) fClub.value = "";
   if (fSpel) fSpel.value = "";
   if (fTeam) fTeam.value = "";
@@ -1057,6 +1073,7 @@ function openEdit(id) {
   if (fDate) fDate.value = item.date_iso || "";
   if (fStatus) fStatus.value = item.status_code || "planned";
   if (fTime) fTime.value = item.time || "";
+  if (fRounds) fRounds.value = item.rounds || "";
   if (fClub) fClub.value = item.club || "";
   if (fSpel) fSpel.value = item.spel || "";
   if (fTeam) fTeam.value = item.team || "";
@@ -1078,7 +1095,7 @@ function openEdit(id) {
   if (fNote) fNote.value = item.note || "";
 
   refreshModalSelects();
-
+  toggleWinterBlock();
   if (btnDelete) btnDelete.style.display = "inline-block";
   if (btnCalendar) btnCalendar.style.display = "inline-block";
   modalEdit?.classList.add("show");
