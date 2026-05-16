@@ -265,44 +265,43 @@ textarea{ min-height: 90px; resize: vertical; }
 .chip {
   padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid #ccc;
+  border: 2px solid transparent;
   background: #f5f5f5;
   cursor: pointer;
   margin-right: 6px;
 }
 
-/* actieve chip */
-.chip.active {
-  border: 2px solid #000;
-}
+/* =====================
+   KOMEND
+===================== */
 
-/* KOMEND */
 .chip-komend {
   background: #e6f4ea;
   color: #1e7e34;
-  border-color: #1e7e34;
+  border: 2px solid #1e7e34;
 }
 
-/* GESPEELD */
+.chip-komend.active {
+  background: #1e7e34 !important;
+  color: white !important;
+  border: 2px solid #145c26 !important;
+}
+
+/* =====================
+   GESPEELD
+===================== */
+
 .chip-gespeeld {
-  background: #eeeeee;
-  color: #666;
-  border-color: #999;
+  background: #ffeaea;
+  color: #bc0a0a;
+  border: 2px solid #bc0a0a;
 }
 
-
-button.chip.chip-komend {
-  background: #e6f4ea !important;
-  color: #1e7e34 !important;
-  border: 2px solid #1e7e34 !important;
+.chip-gespeeld.active {
+  background: #bc0a0a !important;
+  color: white !important;
+  border: 2px solid #7d0000 !important;
 }
-
-button.chip.chip-gespeeld {
-  background: #eeeeee !important;
-  color: #666 !important;
-  border: 2px solid #999 !important;
-}
-
 /* ONDERSTE KNOPPEN (circuits) */
 #circuitTabs .chip {
   background: #2b2f3a;

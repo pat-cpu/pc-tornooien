@@ -73,7 +73,7 @@ VEILIGE STANDAARDVOLGORDE
 
 git status
 git add .
-git commit -m "verbeteringen code"
+git commit -m "KNoppen Komend en Gespeeld aangepast"
 git fetch origin
 git pull --rebase origin main
 git push origin main

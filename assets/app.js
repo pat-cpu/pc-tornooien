@@ -719,6 +719,7 @@ function renderChips() {
     const key = label.trim().toLowerCase();
 
     if (key === "komend") cls += " chip-komend";
+    if (key === "gespeeld") cls += " chip-gespeeld";
 
     if (label === activeChip) cls += " active";
 
