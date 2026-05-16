@@ -271,6 +271,7 @@ const CLUB_CHOICES_BY_CIRCUIT = {
 };
 
 const SPEL_CHOICES = [
+  "Doublet",
   "Doublet gemengd",
   "Doublet Dames",
   "Doublet Heren",
@@ -921,7 +922,14 @@ console.log("ACTIVE CIRCUIT =", activeCircuit);
 
   if (statTotal) statTotal.textContent = upcoming.length;
   if (statVisible) statVisible.textContent = filtered.length;
-  if (statIn) statIn.textContent = "—";
+
+  const ingeschreven = visibleData.filter(x => {
+  const status = (x.status_code || x.status || "").toLowerCase();
+  return status === "registered" || status === "ingeschreven" || status === "inscribed";
+  }).length;
+
+  if (statIn) statIn.textContent = ingeschreven;
+
 
   const next = upcoming
     .map(x => ({ ...x, d: new Date(`${x.date_iso || ""}T00:00:00`) }))
