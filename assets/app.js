@@ -992,18 +992,30 @@ async function importAllTournaments(arr) {
   // await pushAllToCloud(localNow);
   setSyncStatus("bad", "● lokaal geïmporteerd, nog NIET naar cloud");
 }
+function getSelectOrCustom(selectEl, inputEl) {
+  if (!selectEl) return inputEl?.value || "";
+
+  if (selectEl.value === "__custom__") {
+    return inputEl?.value || "";
+  }
+
+  return selectEl.value || inputEl?.value || "";
+}
+
 function formToItemBase() {
   return {
     id: editingId || createUuid(),
     date_iso: fDate?.value || "",
     date: toDisplayDate(fDate?.value || ""),
     time: fTime?.value || "",
-    club: fClub?.value || "",
-    spel: fSpel?.value || "",
+
+    club: getSelectOrCustom(fClubSel, fClub),
+    spel: getSelectOrCustom(fSpelSel, fSpel),
+    team: getSelectOrCustom(fTeamSel, fTeam),
+
     category: fCategory?.value === "AC" ? "AllCat" : (fCategory?.value || ""),
     circuit: fCircuit?.value || "pc",
     status_code: fStatus?.value || "planned",
-    team: fTeam?.value || "",
     note: fNote?.value || ""
   };
 }

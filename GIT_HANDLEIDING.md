@@ -33,3 +33,10 @@ git commit -m "omschrijving"
 git push origin main
 Gouden regel
 ALTIJD eerst pullen vóór committen
+
+
+====Terug naar github code/=====
+
+git status ---> kijken wat veranderd is
+
+git restore .    ------>zet terug naar originele code github
