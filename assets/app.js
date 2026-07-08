@@ -292,6 +292,7 @@ const TEAM_CHOICES_BASE = [
   "Patrick - Annie - 3e speler",
   "Patrick - Annie - Freddy",
   "Patrick - Annie - Gregory",
+  "Patrick - Gregory",
   "Patrick - Freddy - Hubert",
   "Patrick - Gunther",
   "Patrick - Gunther - Dirk - Mimmi",
