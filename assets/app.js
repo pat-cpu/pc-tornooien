@@ -283,7 +283,8 @@ const SPEL_CHOICES = [
   "H/G Triplet kleurentornooi",
   "Kwartetten min 1 dame",
   "Kwartetten min 2 dames",
-  "Sextet"
+  "Sextet",
+  "Meli melo"
   
 ];
 
