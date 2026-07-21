@@ -229,8 +229,10 @@ const CLUB_CHOICES_BY_CIRCUIT = {
     "KPC Mistral",
     "KPC Schorpioen",
     "PC Singel, Grimbergen",
-    "PC Chappo",
-    "VB Oudenaarde"
+    "PC Chappoo",
+    "VB Oudenaarde",
+    "Pius X",
+
   ],
 
   zomer_oost: [
@@ -299,10 +301,10 @@ const TEAM_CHOICES_BASE = [
   "Patrick - Gunther",
   "Patrick - Gunther - Dirk - Mimmi",
   "Patrick - Gunther - Dirk - Mimmi - Ewald - Nathalie",
-  "Patrick - Gunther - JP- Mimmi - Ewald - Nathalie",
+  "Patrick - ewald",
   "Annie - Mia",
   "Annie - Mia - Patrick",
-  "Patrick ewald - Nathalie",
+  "Patrick - ewald - Nathalie",
 
 ];
 function createWinterScoreOptions(select) {
