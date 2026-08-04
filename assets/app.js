@@ -232,6 +232,7 @@ const CLUB_CHOICES_BY_CIRCUIT = {
     "PC Chappoo",
     "VB Oudenaarde",
     "Pius X",
+    "Kautervrienden"
 
   ],
 
