@@ -1,0 +1,7 @@
+05/08/2026 08:34:54 - FOUT: de Supabase-sleutel werd nog niet ingevuld.
+05/08/2026 08:38:01 - HTTP-FOUT 401: {"message":"Invalid API key","hint":"Double check your Supabase `anon` or `service_role` API key."}
+05/08/2026 08:40:41 - HTTP-FOUT 401: {"message":"Invalid API key","hint":"Double check your Supabase `anon` or `service_role` API key."}
+05/08/2026 08:40:56 - HTTP-FOUT 401: {"message":"Invalid API key","hint":"Double check your Supabase `anon` or `service_role` API key."}
+05/08/2026 08:44:06 - HTTP-FOUT 404: {"code":"PGRST205","details":null,"hint":"Perhaps you meant the table 'public.tournaments'","message":"Could not find the table 'public.tournements' in the schema cache"}
+05/08/2026 08:46:16 - OK: Supabase-project succesvol bereikt.
+05/08/2026 09:06:57 - OK: Supabase-project succesvol bereikt.
