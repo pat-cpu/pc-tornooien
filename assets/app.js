@@ -302,11 +302,12 @@ const TEAM_CHOICES_BASE = [
   "Patrick - Freddy - Hubert",
   "Patrick - Gunther",
   "Patrick - Gunther - Dirk - Mimmi",
-  "Patrick -  - Annie - Gunther - Mimmi - Ewald - ",
+  "Patrick - Annie - Gunther - Mimmi - Ewald - 6e man",
   "Patrick - Ewald",
   "Annie - Mia",
   "Annie - Mia - Patrick",
   "Patrick - ewald - Nathalie",
+  "Annie - Mimi"
 
 ];
 function createWinterScoreOptions(select) {
