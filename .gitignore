@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+
+# Logbestanden
+*.log
+
+# Omgevingsvariabelen
+.env
+
+# VS Code persoonlijke instellingen
+.vscode/settings.json
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini

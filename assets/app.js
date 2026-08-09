@@ -232,7 +232,8 @@ const CLUB_CHOICES_BY_CIRCUIT = {
     "PC Chappoo",
     "VB Oudenaarde",
     "Pius X",
-    "Kautervrienden"
+    "Kautervrienden",
+    "PC De zeemeermin"
 
   ],
 
@@ -301,8 +302,8 @@ const TEAM_CHOICES_BASE = [
   "Patrick - Freddy - Hubert",
   "Patrick - Gunther",
   "Patrick - Gunther - Dirk - Mimmi",
-  "Patrick - Gunther - Dirk - Mimmi - Ewald - Nathalie",
-  "Patrick - ewald",
+  "Patrick -  - Annie - Gunther - Mimmi - Ewald - ",
+  "Patrick - Ewald",
   "Annie - Mia",
   "Annie - Mia - Patrick",
   "Patrick - ewald - Nathalie",
